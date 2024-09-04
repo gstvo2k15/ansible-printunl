@@ -1,0 +1,53 @@
+---
+# Add Pritunl GPG key and repository
+- name: Add Pritunl GPG key
+  ansible.builtin.apt_key:
+    url: "https://raw.githubusercontent.com/pritunl/pgp/master/pritunl_repo_pub.asc"
+    state: present
+
+- name: Add Pritunl repository
+  ansible.builtin.apt_repository:
+    repo: "deb http://repo.pritunl.com/stable/apt jammy main"
+    state: present
+
+# Add MongoDB GPG key and repository
+- name: Add MongoDB GPG key
+  ansible.builtin.apt_key:
+    url: "https://www.mongodb.org/static/pgp/server-6.0.asc"
+    state: present
+
+- name: Add MongoDB repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse"
+    state: present
+
+# Update package cache
+- name: Update package cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+# Install required packages
+- name: Install Pritunl, MongoDB, and WireGuard
+  ansible.builtin.apt:
+    name:
+      - pritunl
+      - mongodb-org
+      - wireguard
+      - wireguard-tools
+    state: present
+
+# Disable UFW
+- name: Disable UFW
+  ansible.builtin.ufw:
+    state: disabled
+
+# Enable and start services
+- name: Enable and start MongoDB and Pritunl
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - mongod
+    - pritunl
+

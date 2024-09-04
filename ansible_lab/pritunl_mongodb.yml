@@ -1,0 +1,19 @@
+---
+- hosts: all
+  become: true
+  vars:
+    mongo_device: /dev/ubuntu-vg/mongodblv
+    mongo_folder: /mongodbfolder
+    pritunl_repo_url: "http://repo.pritunl.com/stable/apt"
+    pritunl_gpg_key_url: "https://raw.githubusercontent.com/pritunl/pgp/master/pritunl_repo_pub.asc"
+    mongodb_repo_url: "https://repo.mongodb.org/apt/ubuntu"
+    mongodb_gpg_key_url: "https://www.mongodb.org/static/pgp/server-6.0.asc"
+    ubuntu_version: "jammy"
+    pritunl_service_env: /etc/pritunl-web.env
+    pritunl_service_conf: /etc/systemd/system/pritunl-web.service
+
+  roles:
+    - filesystem
+    - installation
+    - configuration
+

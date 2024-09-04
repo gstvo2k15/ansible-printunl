@@ -1,0 +1,46 @@
+---
+# Ensure vm.max_map_count is set
+- name: Ensure vm.max_map_count is set
+  ansible.builtin.sysctl:
+    name: vm.max_map_count
+    value: 262144
+    state: present
+    reload: yes
+
+# Create logical volume for MongoDB
+- name: Create logical volume for MongoDB
+  community.general.lvol:
+    vg: ubuntu-vg
+    lv: mongodblv
+    size: 5G
+
+# Format the logical volume with XFS
+- name: Format the logical volume with XFS
+  ansible.builtin.filesystem:
+    fstype: xfs
+    dev: "/dev/ubuntu-vg/mongodblv"
+
+# Create MongoDB directory
+- name: Create MongoDB directory
+  ansible.builtin.file:
+    path: /mongodbfolder
+    state: directory
+
+# Mount the logical volume
+- name: Mount the logical volume
+  ansible.builtin.mount:
+    path: /mongodbfolder
+    src: "/dev/ubuntu-vg/mongodblv"
+    fstype: xfs
+    opts: defaults
+    state: mounted
+
+# Add mount to fstab for persistence
+- name: Add mount to fstab for persistence
+  ansible.builtin.mount:
+    path: /mongodbfolder
+    src: "/dev/ubuntu-vg/mongodblv"
+    fstype: xfs
+    opts: defaults
+    state: present
+
