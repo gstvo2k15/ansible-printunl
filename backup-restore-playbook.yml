@@ -1,6 +1,9 @@
 ---
 - hosts: all
   become: yes
+  vars:
+    role_action: "none"  # default value, overridden by --extra-vars
+    destination_server: ""  # variable for destination server
 
   tasks:
     - name: Run Backup Role if selected

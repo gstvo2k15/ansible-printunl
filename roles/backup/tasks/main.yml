@@ -22,8 +22,8 @@
   ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-$(date +'%d%m%Y').archive"
   register: backup_mongo
 
-- name: Backup Let's Encrypt certificates
-  ansible.builtin.shell: "tar -czvf /backups/letsencrypt_backup_$(date +%d%m%Y).tar.gz /etc/letsencrypt"
+#- name: Backup Let's Encrypt certificates
+#  ansible.builtin.shell: "tar -czvf /backups/letsencrypt_backup_$(date +%d%m%Y).tar.gz /etc/letsencrypt"
 
 - name: Backup WireGuard configuration
   ansible.builtin.shell: "tar -czvf /backups/wireguard_backup_$(date +%d%m%Y).tar.gz /etc/wireguard"
@@ -33,6 +33,10 @@
     cmd: "ls -ltr /backups"
   register: backup_list
   ignore_errors: yes
+
+- name: Sync the backup to the destination server
+  ansible.builtin.shell: |
+    rsync -avhz --progress /backups/pritunl-backup-$(date +'%d%m%Y').archive {{ destination_server }}:/backups/
 
 - name: Start Pritunl service
   ansible.builtin.systemd:
