@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: Run Backup Role if selected
+      include_role:
+        name: backup
+      when: role_action == "backup"
+
+    - name: Run Restore Role if selected
+      include_role:
+        name: restore
+      when: role_action == "restore"

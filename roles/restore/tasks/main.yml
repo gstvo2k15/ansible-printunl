@@ -1,0 +1,23 @@
+---
+- name: Retrieve MongoDB URI from /etc/pritunl-web.env
+  ansible.builtin.command:
+    cmd: "grep 'PRITUNL_MONGODB_URI' /etc/pritunl-web.env"
+  register: mongodb_uri_result
+
+- name: Extract and set MongoDB URI
+  set_fact:
+    mongodb_uri: "{{ mongodb_uri_result.stdout | regex_replace('PRITUNL_MONGODB_URI=(.*)', '\\1') }}"
+
+- name: Stop Pritunl service
+  ansible.builtin.systemd:
+    name: pritunl
+    state: stopped
+
+- name: Restore MongoDB backup
+  ansible.builtin.shell: "mongorestore --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-$(date +'%d%m%Y').archive"
+  register: restore_mongo
+
+- name: Start Pritunl service
+  ansible.builtin.systemd:
+    name: pritunl
+    state: started

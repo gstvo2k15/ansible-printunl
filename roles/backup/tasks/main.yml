@@ -1,0 +1,40 @@
+---
+- name: Retrieve MongoDB URI from /etc/pritunl-web.env
+  ansible.builtin.command:
+    cmd: "grep 'PRITUNL_MONGODB_URI' /etc/pritunl-web.env"
+  register: mongodb_uri_result
+
+- name: Extract and set MongoDB URI
+  set_fact:
+    mongodb_uri: "{{ mongodb_uri_result.stdout | regex_replace('PRITUNL_MONGODB_URI=(.*)', '\\1') }}"
+
+- name: Stop Pritunl service
+  ansible.builtin.systemd:
+    name: pritunl
+    state: stopped
+
+- name: Create backup directory if it does not exist
+  ansible.builtin.file:
+    path: "/backups"
+    state: directory
+
+- name: Perform MongoDB backup
+  ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-$(date +'%d%m%Y').archive"
+  register: backup_mongo
+
+- name: Backup Let's Encrypt certificates
+  ansible.builtin.shell: "tar -czvf /backups/letsencrypt_backup_$(date +%d%m%Y).tar.gz /etc/letsencrypt"
+
+- name: Backup WireGuard configuration
+  ansible.builtin.shell: "tar -czvf /backups/wireguard_backup_$(date +%d%m%Y).tar.gz /etc/wireguard"
+
+- name: List backup directory contents
+  ansible.builtin.command:
+    cmd: "ls -ltr /backups"
+  register: backup_list
+  ignore_errors: yes
+
+- name: Start Pritunl service
+  ansible.builtin.systemd:
+    name: pritunl
+    state: started
