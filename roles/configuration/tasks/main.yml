@@ -120,8 +120,8 @@
     msg: "Running mongosh with the following command: mongosh < /tmp/pritunl_setup.js"
 
 - name: Run pritunl_setup.js script with MongoDB connection details
-  ansible.builtin.command:
-    cmd: "mongosh < /tmp/pritunl_setup.js"
+  ansible.builtin.shell:
+    shell: "mongosh < /tmp/pritunl_setup.js"
   register: mongo_output
   ignore_errors: yes  # Continue even if there are errors
 
