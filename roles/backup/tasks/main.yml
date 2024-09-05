@@ -41,6 +41,17 @@
   register: backup_list
   ignore_errors: yes
 
+- name: Verify if the backup file exists
+  ansible.builtin.stat:
+    path: "/backups/pritunl-backup-{{ actual_date }}.archive"
+  register: backup_file
+  delegate_to: ub22srv03
+
+- name: Display backup file status
+  ansible.builtin.debug:
+    msg: "The backup file exists and is ready to be copied."
+  when: backup_file.stat.exists
+
 - name: Sync the backup to the destination server using SCP
   ansible.builtin.copy:
     src: "/backups/pritunl-backup-{{ actual_date }}.archive"
@@ -48,7 +59,7 @@
     mode: '0644'
     remote_src: yes
   delegate_to: "{{ destination_server }}"
-
+  when: backup_file.stat.exists
 
 - name: Start Pritunl service
   ansible.builtin.systemd:
