@@ -46,9 +46,9 @@
     src: "/backups/pritunl-backup-{{ actual_date }}.archive"
     dest: "/backups/"
     mode: '0644'
-    remote_src: no
-    scp_extra_args: "-C"
+    remote_src: yes
   delegate_to: "{{ destination_server }}"
+
 
 - name: Start Pritunl service
   ansible.builtin.systemd:
