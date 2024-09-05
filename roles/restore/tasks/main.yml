@@ -13,6 +13,11 @@
     name: pritunl
     state: stopped
 
+- name: Stop Pritunl-web service
+  ansible.builtin.systemd:
+    name: pritunl-web
+    state: stopped
+
 - name: Restore MongoDB backup
   ansible.builtin.shell: "mongorestore --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-$(date +'%d%m%Y').archive"
   register: restore_mongo
@@ -21,3 +26,9 @@
   ansible.builtin.systemd:
     name: pritunl
     state: started
+
+- name: Start Pritunl-web service
+  ansible.builtin.systemd:
+    name: pritunl-web
+    state: started
+    daemon_reload: yes

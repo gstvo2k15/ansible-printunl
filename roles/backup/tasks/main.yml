@@ -13,6 +13,11 @@
     name: pritunl
     state: stopped
 
+- name: Stop Pritunl-web service
+  ansible.builtin.systemd:
+    name: pritunl-web
+    state: stopped
+
 - name: Create backup directory if it does not exist
   ansible.builtin.file:
     path: "/backups"
@@ -42,3 +47,9 @@
   ansible.builtin.systemd:
     name: pritunl
     state: started
+
+- name: Start Pritunl-web service
+  ansible.builtin.systemd:
+    name: pritunl-web
+    state: started
+    daemon_reload: yes
