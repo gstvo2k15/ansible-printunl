@@ -1,4 +1,12 @@
 ---
+- name: Assign actual date into a variable
+  set_fact:
+    actual_date: "{{ lookup('pipe', 'date +%d%m%Y') }}"
+
+- name: Using the created date-var
+  ansible.builtin.debug:
+    msg: "Actual date to perform the restore is: {{ actual_date }}"
+
 - name: Retrieve MongoDB URI from /etc/pritunl-web.env
   ansible.builtin.command:
     cmd: "grep 'PRITUNL_MONGODB_URI' /etc/pritunl-web.env"
@@ -19,7 +27,7 @@
     state: stopped
 
 - name: Restore MongoDB backup
-  ansible.builtin.shell: "mongorestore --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-$(date +'%d%m%Y').archive"
+  ansible.builtin.shell: "mongorestore --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-{{ actual_date }}.archive"
   register: restore_mongo
 
 - name: Start Pritunl service

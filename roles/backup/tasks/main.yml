@@ -1,4 +1,12 @@
 ---
+- name: Assign actual date into a variable
+  set_fact:
+    actual_date: "{{ lookup('pipe', 'date +%d%m%Y') }}"
+
+- name: Using the created date-var
+  ansible.builtin.debug:
+    msg: "Actual date to perform the backup is: {{ actual_date }}"
+
 - name: Retrieve MongoDB URI from /etc/pritunl-web.env
   ansible.builtin.command:
     cmd: "grep 'PRITUNL_MONGODB_URI' /etc/pritunl-web.env"
@@ -24,14 +32,8 @@
     state: directory
 
 - name: Perform MongoDB backup
-  ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-$(date +'%d%m%Y').archive"
+  ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-{{ actual_date }}.archive"
   register: backup_mongo
-
-#- name: Backup Let's Encrypt certificates
-#  ansible.builtin.shell: "tar -czvf /backups/letsencrypt_backup_$(date +%d%m%Y).tar.gz /etc/letsencrypt"
-
-- name: Backup WireGuard configuration
-  ansible.builtin.shell: "tar -czvf /backups/wireguard_backup_$(date +%d%m%Y).tar.gz /etc/wireguard"
 
 - name: List backup directory contents
   ansible.builtin.command:
@@ -40,8 +42,14 @@
   ignore_errors: yes
 
 - name: Sync the backup to the destination server
-  ansible.builtin.shell: |
-    rsync -avhz --progress /backups/pritunl-backup-$(date +'%d%m%Y').archive {{ destination_server }}:/backups/
+  ansible.builtin.rsync:
+    src: "/backups/pritunl-backup-{{ actual_date }}.archive"
+    dest: "{{ destination_server }}:/backups/"
+    archive: yes
+    compress: yes
+    verbose: yes
+    checksum: yes
+    progress: yes
 
 - name: Start Pritunl service
   ansible.builtin.systemd:
