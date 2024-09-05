@@ -41,15 +41,14 @@
   register: backup_list
   ignore_errors: yes
 
-- name: Sync the backup to the destination server
-  ansible.builtin.rsync:
+- name: Sync the backup to the destination server using SCP
+  ansible.builtin.copy:
     src: "/backups/pritunl-backup-{{ actual_date }}.archive"
-    dest: "{{ destination_server }}:/backups/"
-    archive: yes
-    compress: yes
-    verbose: yes
-    checksum: yes
-    progress: yes
+    dest: "/backups/"
+    mode: '0644'
+    remote_src: no
+    scp_extra_args: "-C"
+  delegate_to: "{{ destination_server }}"
 
 - name: Start Pritunl service
   ansible.builtin.systemd:
