@@ -16,16 +16,6 @@
   set_fact:
     mongodb_uri: "{{ mongodb_uri_result.stdout | regex_replace('PRITUNL_MONGODB_URI=(.*)', '\\1') }}"
 
-- name: Stop Pritunl service
-  ansible.builtin.systemd:
-    name: pritunl
-    state: stopped
-
-- name: Stop Pritunl-web service
-  ansible.builtin.systemd:
-    name: pritunl-web
-    state: stopped
-
 - name: Create backup directory if it does not exist
   ansible.builtin.file:
     path: "/backups"
@@ -48,14 +38,3 @@
     dest: "/backups/"
     mode: '0644'
   delegate_to: "{{ destination_server }}"
-
-- name: Start Pritunl service
-  ansible.builtin.systemd:
-    name: pritunl
-    state: started
-
-- name: Start Pritunl-web service
-  ansible.builtin.systemd:
-    name: pritunl-web
-    state: started
-    daemon_reload: yes
