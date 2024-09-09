@@ -19,10 +19,10 @@ Vagrant.configure("2") do |config|
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
       # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/node1_disk.vdi', '--size', 10240]
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode1_disk.vdi', '--size', 10240]
 
       # Adjuntar el disco al controlador SATA
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/node1_disk.vdi']
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode1_disk.vdi']
     end
 
     # Aprovisionamiento para LVM
@@ -55,10 +55,10 @@ Vagrant.configure("2") do |config|
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
       # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/node2_disk.vdi', '--size', 10240]
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode2_disk.vdi', '--size', 10240]
 
       # Adjuntar el disco al controlador SATA
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/node2_disk.vdi']
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode2_disk.vdi']
     end
 
     node2.vm.provision "shell", inline: <<-SHELL
@@ -90,10 +90,10 @@ Vagrant.configure("2") do |config|
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
       # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/node3_disk.vdi', '--size', 10240]
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode3_disk.vdi', '--size', 10240]
 
       # Adjuntar el disco al controlador SATA
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/node3_disk.vdi']
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode3_disk.vdi']
     end
 
     node3.vm.provision "shell", inline: <<-SHELL
