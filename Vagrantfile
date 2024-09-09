@@ -6,17 +6,23 @@ Vagrant.configure("2") do |config|
   # Nodo 1
   config.vm.define "node1" do |node1|
     node1.vm.hostname = "labnode1"
+    
+    # Solo adaptador puente
     node1.vm.network "public_network", ip: "192.168.1.131", bridge: "enx3c18a0d4bb07"
+
+    # Configuración del proveedor VirtualBox
     node1.vm.provider "virtualbox" do |vb|
       vb.memory = "2048"
       vb.cpus = 2
 
-      # Agregar un controlador SATA para el nuevo disco
+      # Crear un controlador SATA para el disco adicional
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Agregar disco adicional para LVM con ruta absoluta
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode1_disk.vdi', '--size', 10240]
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode1_disk.vdi']
+      # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/node1_disk.vdi', '--size', 10240]
+
+      # Adjuntar el disco al controlador SATA
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/node1_disk.vdi']
     end
 
     # Aprovisionamiento para LVM
@@ -37,20 +43,24 @@ Vagrant.configure("2") do |config|
   # Nodo 2 (misma configuración)
   config.vm.define "node2" do |node2|
     node2.vm.hostname = "labnode2"
+    
+    # Solo adaptador puente
     node2.vm.network "public_network", ip: "192.168.1.132", bridge: "enx3c18a0d4bb07"
+
     node2.vm.provider "virtualbox" do |vb|
       vb.memory = "2048"
       vb.cpus = 2
 
-      # Agregar un controlador SATA para el nuevo disco
+      # Crear un controlador SATA para el disco adicional
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Agregar disco adicional para LVM con ruta absoluta
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode2_disk.vdi', '--size', 10240]
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode2_disk.vdi']
+      # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/node2_disk.vdi', '--size', 10240]
+
+      # Adjuntar el disco al controlador SATA
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/node2_disk.vdi']
     end
 
-    # Aprovisionamiento para LVM
     node2.vm.provision "shell", inline: <<-SHELL
       sudo apt-get update
       sudo apt-get install -y lvm2
@@ -68,20 +78,24 @@ Vagrant.configure("2") do |config|
   # Nodo 3 (misma configuración)
   config.vm.define "node3" do |node3|
     node3.vm.hostname = "labnode3"
+    
+    # Solo adaptador puente
     node3.vm.network "public_network", ip: "192.168.1.133", bridge: "enx3c18a0d4bb07"
+
     node3.vm.provider "virtualbox" do |vb|
       vb.memory = "2048"
       vb.cpus = 2
 
-      # Agregar un controlador SATA para el nuevo disco
+      # Crear un controlador SATA para el disco adicional
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Agregar disco adicional para LVM con ruta absoluta
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode3_disk.vdi', '--size', 10240]
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode3_disk.vdi']
+      # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/node3_disk.vdi', '--size', 10240]
+
+      # Adjuntar el disco al controlador SATA
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/node3_disk.vdi']
     end
 
-    # Aprovisionamiento para LVM
     node3.vm.provision "shell", inline: <<-SHELL
       sudo apt-get update
       sudo apt-get install -y lvm2
