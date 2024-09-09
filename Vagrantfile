@@ -6,14 +6,15 @@ Vagrant.configure("2") do |config|
   # Nodo 1
   config.vm.define "node1" do |node1|
     node1.vm.hostname = "labnode1"
-    node1.vm.network "public_network", ip: "192.168.1.131", bridge: "enp0s3"
+    node1.vm.network "public_network", ip: "192.168.1.131", bridge: "enx3c18a0d4bb07"
     node1.vm.provider "virtualbox" do |vb|
       vb.memory = "2048"
       vb.cpus = 2
-    end
 
-    # Agregar disco adicional para LVM
-    node1.vm.provider "virtualbox" do |vb|
+      # Agregar un controlador SATA para el nuevo disco
+      vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
+
+      # Agregar disco adicional para LVM
       vb.customize ['createhd', '--filename', './node1_disk.vdi', '--size', 10240]  # Tamaño de 10GB
       vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', './node1_disk.vdi']
     end
@@ -36,17 +37,20 @@ Vagrant.configure("2") do |config|
   # Nodo 2 (misma configuración)
   config.vm.define "node2" do |node2|
     node2.vm.hostname = "labnode2"
-    node2.vm.network "public_network", ip: "192.168.1.132", bridge: "enp0s3"
+    node2.vm.network "public_network", ip: "192.168.1.132", bridge: "enx3c18a0d4bb07"
     node2.vm.provider "virtualbox" do |vb|
       vb.memory = "2048"
       vb.cpus = 2
-    end
 
-    node2.vm.provider "virtualbox" do |vb|
+      # Agregar un controlador SATA para el nuevo disco
+      vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
+
+      # Agregar disco adicional para LVM
       vb.customize ['createhd', '--filename', './node2_disk.vdi', '--size', 10240]  # Tamaño de 10GB
       vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', './node2_disk.vdi']
     end
 
+    # Aprovisionamiento para LVM
     node2.vm.provision "shell", inline: <<-SHELL
       sudo apt-get update
       sudo apt-get install -y lvm2
@@ -64,17 +68,20 @@ Vagrant.configure("2") do |config|
   # Nodo 3 (misma configuración)
   config.vm.define "node3" do |node3|
     node3.vm.hostname = "labnode3"
-    node3.vm.network "public_network", ip: "192.168.1.133", bridge: "enp0s3"
+    node3.vm.network "public_network", ip: "192.168.1.133", bridge: "enx3c18a0d4bb07"
     node3.vm.provider "virtualbox" do |vb|
       vb.memory = "2048"
       vb.cpus = 2
-    end
 
-    node3.vm.provider "virtualbox" do |vb|
+      # Agregar un controlador SATA para el nuevo disco
+      vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
+
+      # Agregar disco adicional para LVM
       vb.customize ['createhd', '--filename', './node3_disk.vdi', '--size', 10240]  # Tamaño de 10GB
       vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', './node3_disk.vdi']
     end
 
+    # Aprovisionamiento para LVM
     node3.vm.provision "shell", inline: <<-SHELL
       sudo apt-get update
       sudo apt-get install -y lvm2
