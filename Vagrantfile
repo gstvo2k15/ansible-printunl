@@ -3,6 +3,9 @@ Vagrant.configure("2") do |config|
   # Configuración global para todas las VMs
   config.vm.box = "ubuntu/jammy64"  # Ubuntu 22.04
 
+  # Obtener el directorio actual para las rutas de los discos
+  current_dir = File.expand_path(".")
+
   # Nodo 1
   config.vm.define "node1" do |node1|
     node1.vm.hostname = "labnode1"
@@ -15,14 +18,12 @@ Vagrant.configure("2") do |config|
       vb.memory = "2048"
       vb.cpus = 2
 
-      # Crear un controlador SATA para el disco adicional
+      # Crear un controlador SATA adicional para el disco
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode1_disk.vdi', '--size', 10240]
-
-      # Adjuntar el disco al controlador SATA
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode1_disk.vdi']
+      # Crear y adjuntar un disco adicional de 10GB usando PWD con nombre labnode1_disk.vdi
+      vb.customize ['createhd', '--filename', "#{current_dir}/labnode1_disk.vdi", '--size', 10240]
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', "#{current_dir}/labnode1_disk.vdi"]
     end
 
     # Aprovisionamiento para LVM
@@ -40,7 +41,7 @@ Vagrant.configure("2") do |config|
     SHELL
   end
 
-  # Nodo 2 (misma configuración)
+  # Nodo 2
   config.vm.define "node2" do |node2|
     node2.vm.hostname = "labnode2"
     
@@ -51,16 +52,15 @@ Vagrant.configure("2") do |config|
       vb.memory = "2048"
       vb.cpus = 2
 
-      # Crear un controlador SATA para el disco adicional
+      # Crear un controlador SATA adicional para el disco
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode2_disk.vdi', '--size', 10240]
-
-      # Adjuntar el disco al controlador SATA
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode2_disk.vdi']
+      # Crear y adjuntar un disco adicional de 10GB usando PWD con nombre labnode2_disk.vdi
+      vb.customize ['createhd', '--filename', "#{current_dir}/labnode2_disk.vdi", '--size', 10240]
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', "#{current_dir}/labnode2_disk.vdi"]
     end
 
+    # Aprovisionamiento para LVM
     node2.vm.provision "shell", inline: <<-SHELL
       sudo apt-get update
       sudo apt-get install -y lvm2
@@ -75,7 +75,7 @@ Vagrant.configure("2") do |config|
     SHELL
   end
 
-  # Nodo 3 (misma configuración)
+  # Nodo 3
   config.vm.define "node3" do |node3|
     node3.vm.hostname = "labnode3"
     
@@ -86,16 +86,15 @@ Vagrant.configure("2") do |config|
       vb.memory = "2048"
       vb.cpus = 2
 
-      # Crear un controlador SATA para el disco adicional
+      # Crear un controlador SATA adicional para el disco
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Crear un disco adicional de 10GB para LVM (usando una ruta absoluta)
-      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode3_disk.vdi', '--size', 10240]
-
-      # Adjuntar el disco al controlador SATA
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode3_disk.vdi']
+      # Crear y adjuntar un disco adicional de 10GB usando PWD con nombre labnode3_disk.vdi
+      vb.customize ['createhd', '--filename', "#{current_dir}/labnode3_disk.vdi", '--size', 10240]
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', "#{current_dir}/labnode3_disk.vdi"]
     end
 
+    # Aprovisionamiento para LVM
     node3.vm.provision "shell", inline: <<-SHELL
       sudo apt-get update
       sudo apt-get install -y lvm2
