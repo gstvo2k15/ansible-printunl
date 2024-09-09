@@ -14,9 +14,9 @@ Vagrant.configure("2") do |config|
       # Agregar un controlador SATA para el nuevo disco
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Agregar disco adicional para LVM
-      vb.customize ['createhd', '--filename', './node1_disk.vdi', '--size', 10240]  # Tamaño de 10GB
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', './node1_disk.vdi']
+      # Agregar disco adicional para LVM con ruta absoluta
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode1_disk.vdi', '--size', 10240]
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode1_disk.vdi']
     end
 
     # Aprovisionamiento para LVM
@@ -45,9 +45,9 @@ Vagrant.configure("2") do |config|
       # Agregar un controlador SATA para el nuevo disco
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Agregar disco adicional para LVM
-      vb.customize ['createhd', '--filename', './node2_disk.vdi', '--size', 10240]  # Tamaño de 10GB
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', './node2_disk.vdi']
+      # Agregar disco adicional para LVM con ruta absoluta
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode2_disk.vdi', '--size', 10240]
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode2_disk.vdi']
     end
 
     # Aprovisionamiento para LVM
@@ -76,9 +76,9 @@ Vagrant.configure("2") do |config|
       # Agregar un controlador SATA para el nuevo disco
       vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
 
-      # Agregar disco adicional para LVM
-      vb.customize ['createhd', '--filename', './node3_disk.vdi', '--size', 10240]  # Tamaño de 10GB
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', './node3_disk.vdi']
+      # Agregar disco adicional para LVM con ruta absoluta
+      vb.customize ['createhd', '--filename', '/home/kloud/Documents/Repos/ansible-printunl/labnode3_disk.vdi', '--size', 10240]
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', '/home/kloud/Documents/Repos/ansible-printunl/labnode3_disk.vdi']
     end
 
     # Aprovisionamiento para LVM
