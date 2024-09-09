@@ -2,6 +2,7 @@
 - hosts: all
   become: true
   roles:
+    - vagrant
     - filesystem
     - installation
     - configuration
