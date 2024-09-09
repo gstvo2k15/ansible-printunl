@@ -1,2 +1,27 @@
 ---
 # tasks file for vagrant
+- name: Ejecutar Vagrant para levantar las máquinas virtuales
+  hosts: localhost
+  tasks:
+    - name: Verificar si el fichero Vagrantfile existe
+      stat:
+        path: "{{ lookup('env', 'PWD') }}/Vagrantfile"
+      register: vagrantfile_exists
+
+    - name: Levantar las máquinas con 'vagrant up'
+      command: vagrant up
+      args:
+        chdir: "{{ lookup('env', 'PWD') }}"
+      when: vagrantfile_exists.stat.exists
+
+    - name: Verificar el estado de las máquinas Vagrant
+      command: vagrant status
+      args:
+        chdir: "{{ lookup('env', 'PWD') }}"
+      register: vagrant_status
+      when: vagrantfile_exists.stat.exists
+
+    - name: Mostrar estado de las máquinas
+      debug:
+        msg: "{{ vagrant_status.stdout }}"
+      when: vagrantfile_exists.stat.exists
