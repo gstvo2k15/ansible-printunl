@@ -112,7 +112,7 @@
 
 - name: Debug pritunl_setup.js content
   ansible.builtin.debug:
-    var: pritunl_setup_script.stdout
+    var: pritunl_setup_script.stdout_lines
 
 
 - name: Debugging the generated command
