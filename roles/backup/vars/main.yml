@@ -1,0 +1,3 @@
+container_name: "my-container"
+storage_account_name: "mystorageaccount"
+storage_account_key: "my-storage-account-key"

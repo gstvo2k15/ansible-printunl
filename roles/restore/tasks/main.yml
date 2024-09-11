@@ -1,7 +1,7 @@
 ---
 - name: Assign actual date into a variable
   set_fact:
-    actual_date: "{{ lookup('pipe', 'date +%d%m%Y') }}"
+    actual_date: "{{ ansible_date_time.date | regex_replace('-', '') }}"
 
 - name: Using the created date-var
   ansible.builtin.debug:
