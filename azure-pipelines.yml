@@ -1,0 +1,40 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+# Define input parameters
+parameters:
+  - name: roleAction
+    displayName: 'Select Role Action (Backup or Restore)'
+    type: string
+    default: 'backup'  # Default to backup
+    values:
+      - backup
+      - restore
+
+  - name: destinationServer
+    displayName: 'Destination Server (for Backup or Restore)'
+    type: string
+    default: ''
+    allowEmptyValue: true  # Allow empty if not required
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.x'
+      addToPath: true
+
+  - script: |
+      python3 -m venv ansible_venv
+      source ansible_venv/bin/activate
+      pip install ansible
+    displayName: 'Install Ansible'
+
+  - script: |
+      ansible-playbook -i $(ANSIBLE_HOSTS) backup-restore-playbook.yml \
+        -e "role_action=${{ parameters.roleAction }} destination_server=${{ parameters.destinationServer }}"
+    displayName: 'Run Backup or Restore Playbook'

@@ -16,3 +16,17 @@ Ansible deployment to provision printunl in VirtualBox VMs with Vagrant.
 ## To Run the Restore Role:
 
 `ansible-playbook -i hosts.yml backup-restore-playbook.yml --extra-vars "role_action=restore" -l ub22srv06`
+
+## TO-DO (Execute backup/restore via azure pipeline)
+
+```
+ansible-printunl/
+├── backup-restore-playbook.yml
+└── roles/
+    ├── backup/
+    │   └── tasks/
+    │       └── main.yml
+    └── restore/
+        └── tasks/
+            └── main.yml
+```
