@@ -98,16 +98,16 @@
   ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive"
   register: backup_mongo
 
-- name: Fetch the backup file from the source server
-  ansible.builtin.fetch:
-    src: "/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive"
-    dest: "/tmp/backups/"
-    flat: yes
-  delegate_to: "{{ ansible_host }}"
-
-- name: Copy the backup to the destination server using SCP
-  ansible.builtin.copy:
-    src: "/tmp/backups/pritunl-backup-{{ actual_date }}.archive"
-    dest: "/backups/"
-    mode: '0644'
-  delegate_to: "{{ destination_server }}"
+###- name: Fetch the backup file from the source server
+###  ansible.builtin.fetch:
+###    src: "/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive"
+###    dest: "/tmp/backups/"
+###    flat: yes
+###  delegate_to: "{{ ansible_host }}"
+###
+###- name: Copy the backup to the destination server using SCP
+###  ansible.builtin.copy:
+###    src: "/tmp/backups/pritunl-backup-{{ actual_date }}.archive"
+###    dest: "/backups/"
+###    mode: '0644'
+###  delegate_to: "{{ destination_server }}"
