@@ -1,3 +1,4 @@
+---
 - name: Download Microsoft package configuration for Ubuntu
   ansible.builtin.get_url:
     url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
@@ -34,15 +35,15 @@
     mode: '0750'
   # This task ensures that the temporary path exists, which is required for blobfuse
 
-##- name: Create a fuse connection to the Azure Blob storage
-##  ansible.builtin.command: >
-##    blobfuse /mnt/azureblob --tmp-path=/mnt/resource/blobfusetmp 
-##    --container-name={{ container_name }} 
-##    --account-name={{ storage_account_name }} 
-##    --account-key={{ storage_account_key }} 
-##    -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
-##  args:
-##    creates: /mnt/azureblob
+- name: Create a fuse connection to the Azure Blob storage
+  ansible.builtin.command: >
+    blobfuse /mnt/azureblob --tmp-path=/mnt/resource/blobfusetmp 
+    --container-name={{ container_name }} 
+    --account-name={{ storage_account_name }} 
+    --account-key={{ storage_account_key }} 
+    -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
+  args:
+    creates: /mnt/azureblob
 
 - name: Verify that Azure Blob storage is mounted
   ansible.builtin.command: df -h /mnt/azureblob

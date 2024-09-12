@@ -1,4 +1,71 @@
 ---
+# Backup Role
+- name: Check if blobfuse2 is installed
+  ansible.builtin.package_facts:
+    manager: "apt"
+
+- name: Install Microsoft package configuration for Ubuntu
+  ansible.builtin.get_url:
+    url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+    dest: /tmp/packages-microsoft-prod.deb
+  when: "'blobfuse2' not in ansible_facts.packages"
+
+- name: Install Microsoft package configuration
+  ansible.builtin.apt:
+    deb: /tmp/packages-microsoft-prod.deb
+    state: present
+  when: "'blobfuse2' not in ansible_facts.packages"
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  when: "'blobfuse2' not in ansible_facts.packages"
+
+- name: Install required packages for Blobfuse
+  ansible.builtin.apt:
+    name:
+      - fuse3
+      - blobfuse2
+    state: present
+    update_cache: yes
+  when: "'blobfuse2' not in ansible_facts.packages"
+
+- name: Ensure the directory for mounting Azure Blob storage exists
+  ansible.builtin.file:
+    path: /mnt/azureblob
+    state: directory
+    mode: '0750'
+
+- name: Ensure the tmp path for Blobfuse exists
+  ansible.builtin.file:
+    path: /mnt/resource/blobfusetmp
+    state: directory
+    mode: '0750'
+
+- name: Verify if /mnt/azureblob is already mounted
+  ansible.builtin.command: "mountpoint /mnt/azureblob"
+  register: mountpoint_check
+  failed_when: false
+
+- name: Mount Azure Blob storage if not already mounted
+  ansible.builtin.command: >
+    blobfuse /mnt/azureblob --tmp-path=/mnt/resource/blobfusetmp 
+    --container-name={{ container_name }} 
+    --account-name={{ storage_account_name }} 
+    --account-key={{ storage_account_key }} 
+    -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
+  when: mountpoint_check.rc != 0
+  args:
+    creates: /mnt/azureblob
+
+- name: Verify that Azure Blob storage is mounted
+  ansible.builtin.command: df -h /mnt/azureblob
+  register: mount_output
+
+- name: Debug output of the mounted Azure Blob storage
+  ansible.builtin.debug:
+    msg: "{{ mount_output.stdout_lines }}"
+
 - name: Assign actual date into a variable
   set_fact:
     actual_date: "{{ ansible_date_time.date | regex_replace('-', '') }}"
