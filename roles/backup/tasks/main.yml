@@ -85,16 +85,16 @@
 
 - name: Create backup directory if it does not exist
   ansible.builtin.file:
-    path: "/backups"
+    path: "/mnt/azureblob/backups"
     state: directory
 
 - name: Perform MongoDB backup
-  ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/backups/pritunl-backup-{{ actual_date }}.archive"
+  ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive"
   register: backup_mongo
 
 - name: Fetch the backup file from the source server
   ansible.builtin.fetch:
-    src: "/backups/pritunl-backup-{{ actual_date }}.archive"
+    src: "/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive"
     dest: "/tmp/backups/"
     flat: yes
   delegate_to: "{{ ansible_host }}"
