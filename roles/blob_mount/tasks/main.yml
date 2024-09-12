@@ -1,0 +1,39 @@
+- name: Install required packages for Blobfuse (Ubuntu/Debian)
+  ansible.builtin.apt:
+    name:
+      - blobfuse
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure the directory for mounting Azure Blob storage exists
+  ansible.builtin.file:
+    path: /mnt/azureblob
+    state: directory
+    mode: '0750'
+  # This task will create the directory if it doesn't exist
+
+- name: Ensure the tmp path for Blobfuse exists
+  ansible.builtin.file:
+    path: /mnt/resource/blobfusetmp
+    state: directory
+    mode: '0750'
+  # This task ensures that the temporary path exists, which is required for blobfuse
+
+##- name: Create a fuse connection to the Azure Blob storage
+##  ansible.builtin.command: >
+##    blobfuse /mnt/azureblob --tmp-path=/mnt/resource/blobfusetmp 
+##    --container-name={{ container_name }} 
+##    --account-name={{ storage_account_name }} 
+##    --account-key={{ storage_account_key }} 
+##    -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
+##  args:
+##    creates: /mnt/azureblob
+
+- name: Verify that Azure Blob storage is mounted
+  ansible.builtin.command: df -h /mnt/azureblob
+  register: mount_output
+
+- name: Debug output of the mounted Azure Blob storage
+  ansible.builtin.debug:
+    msg: "{{ mount_output.stdout_lines }}"

@@ -6,6 +6,11 @@
     destination_server: ""  # variable for destination server
 
   tasks:
+    - name: Install azure blob Role if selected
+      include_role:
+        name: blob_mount
+      when: role_action == "blob_mount"
+      
     - name: Run Backup Role if selected
       include_role:
         name: backup

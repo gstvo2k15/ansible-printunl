@@ -9,6 +9,10 @@ Ansible deployment to provision printunl in VirtualBox VMs with Vagrant.
 
 `ansible-playbook -i hosts.yml -l pritunl_servers1 pritunl_mongodb.yml`
 
+## Install azure-blob Role:
+
+`ansible-playbook -i hosts.yml backup-restore-playbook.yml --extra-vars "role_action=blob_mount" -l ub22srv02`
+
 ## To Run the Backup Role:
 
 `ansible-playbook -i hosts.yml backup-restore-playbook.yml --extra-vars "role_action=backup destination_server=root@ub22srv06" -l ub22srv02`
