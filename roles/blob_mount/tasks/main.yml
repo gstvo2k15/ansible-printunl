@@ -1,7 +1,16 @@
+- name: Add Microsoft APT repository for blobfuse2
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main"
+    state: present
+    filename: azure-cli
+    mode: '0644'
+  become: yes
+
 - name: Install required packages for Blobfuse (Ubuntu/Debian)
   ansible.builtin.apt:
     name:
-      - blobfuse
+      - fuse3
+      - blobfuse2
     state: present
     update_cache: yes
   when: ansible_os_family == "Debian"
