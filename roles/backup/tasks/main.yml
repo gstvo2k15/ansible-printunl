@@ -83,10 +83,16 @@
   set_fact:
     mongodb_uri: "{{ mongodb_uri_result.stdout | regex_replace('PRITUNL_MONGODB_URI=(.*)', '\\1') }}"
 
+- name: Check if backup directory exists
+  ansible.builtin.stat:
+    path: "/mnt/azureblob/backups"
+  register: backup_dir_status
+
 - name: Create backup directory if it does not exist
   ansible.builtin.file:
     path: "/mnt/azureblob/backups"
     state: directory
+  when: not backup_dir_status.stat.exists
 
 - name: Perform MongoDB backup
   ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive"
