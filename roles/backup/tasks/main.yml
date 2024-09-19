@@ -68,20 +68,27 @@
 
 - name: Assign actual date into a variable
   set_fact:
-    actual_date: "{{ ansible_date_time.date | regex_replace('-', '') }}"
+    actual_date: "{{ ansible_date_time.day }}{{ ansible_date_time.month }}{{ ansible_date_time.year }}"
 
 - name: Using the created date-var
   ansible.builtin.debug:
     msg: "Actual date to perform the backup is: {{ actual_date }}"
 
-- name: Retrieve MongoDB URI from /etc/pritunl-web.env
-  ansible.builtin.command:
-    cmd: "grep 'PRITUNL_MONGODB_URI' /etc/pritunl-web.env"
-  register: mongodb_uri_result
+- name: Read the /etc/pritunl-web.env file
+  ansible.builtin.slurp:
+    path: /etc/pritunl-web.env
+  register: pritunl_env_file
+  ignore_errors: "{{ ansible_check_mode }}"
 
-- name: Extract and set MongoDB URI
+- name: Extract MongoDB URI from the env file
   set_fact:
-    mongodb_uri: "{{ mongodb_uri_result.stdout | regex_replace('PRITUNL_MONGODB_URI=(.*)', '\\1') }}"
+    mongodb_uri: "{{ (pritunl_env_file.content | b64decode).splitlines() | select('search', '^PRITUNL_MONGODB_URI') | first | regex_replace('PRITUNL_MONGODB_URI=', '') }}"
+  when: pritunl_env_file is defined and pritunl_env_file.content is defined
+
+- name: Debug MongoDB URI
+  ansible.builtin.debug:
+    var: mongodb_uri
+  when: mongodb_uri is defined
 
 - name: Check if backup directory exists
   ansible.builtin.stat:
@@ -94,9 +101,25 @@
     state: directory
   when: not backup_dir_status.stat.exists
 
-- name: Perform MongoDB backup
-  ansible.builtin.shell: "mongodump --uri=\"{{ mongodb_uri }}\" --archive=/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive"
-  register: backup_mongo
+- name: Perform MongoDB backup using mongodump
+  command: >
+    mongodump --uri={{ mongodb_uri }} --archive=pritunl-backup-{{ actual_date }}.archive
+  args:
+    chdir: /mnt/azureblob/backups
+    creates: /mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive
+  when: mongodb_uri is defined
+
+- name: List backup files in the directory
+  find:
+    paths: /mnt/azureblob/backups
+    recurse: no
+    file_type: file
+  register: backup_files_output
+
+- name: Show current backup files created
+  debug:
+    msg: "{{ backup_files_output.files | map(attribute='path') | list }}"
+  when: backup_files_output is defined and backup_files_output.matched > 0
 
 ###- name: Fetch the backup file from the source server
 ###  ansible.builtin.fetch:
