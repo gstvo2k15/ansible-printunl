@@ -1,0 +1,5 @@
+autopep8==2.3.1
+black==24.8.0
+graphviz==0.20.3
+pylint==3.3.0
+PyYAML==6.0.2

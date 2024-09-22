@@ -34,3 +34,13 @@ ansible-printunl/
         └── tasks/
             └── main.yml
 ```
+## Lint checks
+```
+python3 -m venv drawcode
+source drawcode/bin/activate
+pip install -r requirements.txt
+
+autopep8 --in-place --aggressive --aggressive generate_diagram.py
+black generate_diagram.py
+pylint generate_diagram.py
+```
