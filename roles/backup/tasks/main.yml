@@ -1,55 +1,57 @@
 ---
-- name: Assign actual date to variable
-  ansible.builtin.set_fact:
-    actual_date: "{{ ansible_date_time.day }}{{ ansible_date_time.month }}{{ ansible_date_time.year }}"
+- name: Backup MongoDB data
+  block:
+    - name: Assign actual date to variable
+      ansible.builtin.set_fact:
+        actual_date: "{{ ansible_date_time.day }}{{ ansible_date_time.month }}{{ ansible_date_time.year }}"
 
-- name: Debug actual date for backup
-  ansible.builtin.debug:
-    msg: 'Actual date to perform the backup is: {{ actual_date }}'
-    verbosity: 2
+    - name: Debug actual date for backup
+      ansible.builtin.debug:
+        msg: 'Actual date to perform the backup is: {{ actual_date }}'
+        verbosity: 2
 
-- name: Set backup path and file
-  ansible.builtin.set_fact:
-    backup_path: '/mnt/azureblob/backups'
-    backup_file: "{{ backup_path }}/pritunl-backup-{{ actual_date }}.archive"
+    - name: Set backup path and file
+      ansible.builtin.set_fact:
+        backup_path: "/mnt/azureblob/backups"
+        backup_file: "{{ backup_path }}/pritunl-backup-{{ actual_date }}.archive"
+    
+    - name: Debug backup path and file
+      ansible.builtin.debug:
+        msg:
+          - "Backup path is: {{ backup_path }}"
+          - "Backup file is: {{ backup_file }}"
 
-- name: Debug backup path and file
-  ansible.builtin.debug:
-    msg:
-      - "Backup path is: {{ backup_path }}"
-      - "Backup file is: {{ backup_file }}"
+    - name: Perform MongoDB backup using mongodump
+      ansible.legacy.command:
+        cmd: >
+          mongodump --uri="{{ mongodb_uri }}"
+          --archive="{{ backup_file }}"
+      args:
+        chdir: '{{ backup_path }}'
+        creates: '{{ backup_file }}'
+      when: mongodb_uri is defined
 
-- name: Perform MongoDB backup using mongodump
-  ansible.legacy.command:
-    cmd: >
-      mongodump --uri="{{ mongodb_uri }}"
-      --archive="{{ backup_file }}"
-  args:
-    chdir: '{{ backup_path }}'
-    creates: '{{ backup_file }}'
-  when: mongodb_uri is defined
+    - name: List backup files in the directory
+      ansible.builtin.find:
+        paths: '{{ backup_path }}'
+        recurse: false
+        file_type: file
+      register: backup_files_output
 
-- name: List backup files in the directory
-  ansible.builtin.find:
-    paths: '{{ backup_path }}'
-    recurse: false
-    file_type: file
-  register: backup_files_output
+    - name: Show current backup files created
+      ansible.builtin.debug:
+        msg: "{{ backup_files_output.files | map(attribute='path') | list }}"
+        verbosity: 2
+      when: backup_files_output is defined and backup_files_output.matched > 0
 
-- name: Show current backup files created
-  ansible.builtin.debug:
-    msg: "{{ backup_files_output.files | map(attribute='path') | list }}"
-    verbosity: 2
-  when: backup_files_output is defined and backup_files_output.matched > 0
+    - name: Unmount Azure Blob storage after backup
+      ansible.posix.mount:
+        path: /mnt/azureblob
+        state: unmounted
+      when: not ansible_check_mode and mountpoint_check.rc == 0
+      register: umount_result
 
-- name: Unmount Azure Blob storage after backup
-  ansible.posix.mount:
-    path: /mnt/azureblob
-    state: unmounted
-  when: not ansible_check_mode and mountpoint_check.rc == 0
-  register: umount_result
-
-- name: Debug detailed umount_result
-  ansible.builtin.debug:
-    var: umount_result
-    verbosity: 2
+    - name: Debug detailed umount_result
+      ansible.builtin.debug:
+        var: umount_result
+        verbosity: 2
