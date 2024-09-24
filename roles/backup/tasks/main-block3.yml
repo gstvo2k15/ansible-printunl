@@ -1,0 +1,48 @@
+---
+- name: Manage directories and mount Azure Blob
+  ignore_errors: "{{ ansible_check_mode }}"
+  block:
+    - name: Create necessary directories for Blobfuse
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0700'
+      with_items:
+        - "/mnt/azureblob/tmp"
+        - "/mnt/azureblob/backups"
+      register: required_dirs_check
+
+    - name: Debug required paths check
+      ansible.builtin.debug:
+        var: required_dirs_check
+        verbosity: 2
+      when: required_dirs_check is defined
+
+    - name: Simulate mount check for dry-run
+      ansible.builtin.stat:
+        path: /mnt/azureblob
+      register: mountpoint_check
+      when: ansible_check_mode
+
+    - name: Debug /mnt/azureblob check
+      ansible.builtin.debug:
+        var: mountpoint_check
+        verbosity: 2
+      when: mountpoint_check is defined
+
+    - name: Verify if Azure Blob storage is mounted
+      ansible.builtin.stat:
+        path: /mnt/azureblob
+      register: azureblob_output
+      failed_when: azureblob_output is not defined or (not azureblob_output.stat.exists and not ansible_check_mode)
+
+    - name: Debug output of the mounted Azure Blob storage
+      ansible.builtin.debug:
+        msg: "Azure Blob storage is mounted at {{ item.path }}"
+        verbosity: 2
+      with_items: "{{ azureblob_output.results }}"
+      when:
+        - item.stat is defined
+        - item.stat.exists
+        - item.stat.mnt is defined
+        - item.stat.mnt

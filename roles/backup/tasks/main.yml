@@ -1,48 +1,85 @@
 ---
-- name: Manage directories and mount Azure Blob
+- name: Retrieve MongoDB URI from pritunl-web.env
   ignore_errors: "{{ ansible_check_mode }}"
   block:
-    - name: Create necessary directories for Blobfuse
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        mode: '0700'
-      with_items:
-        - "/mnt/azureblob/tmp"
-        - "/mnt/azureblob/backups"
-      register: required_dirs_check
-
-    - name: Debug required paths check
-      ansible.builtin.debug:
-        var: required_dirs_check
-        verbosity: 2
-      when: required_dirs_check is defined
-
-    - name: Simulate mount check for dry-run
+    - name: Check if /etc/pritunl-web.env exists
       ansible.builtin.stat:
-        path: /mnt/azureblob
-      register: mountpoint_check
-      when: ansible_check_mode
+        path: /etc/pritunl-web.env
+      register: pritunl_env_file
 
-    - name: Debug /mnt/azureblob check
+    - name: Retrieve MongoDB URI from /etc/pritunl-web.env
+      ansible.builtin.slurp:
+        path: /etc/pritunl-web.env
+      register: mongodb_uri_result
+      when: pritunl_env_file.stat.exists
+
+    - name: Debug MongoDB URI result
       ansible.builtin.debug:
-        var: mountpoint_check
+        var: mongodb_uri_result
         verbosity: 2
-      when: mountpoint_check is defined
+      when: mongodb_uri_result is defined and mongodb_uri_result.content is defined
 
-    - name: Verify if Azure Blob storage is mounted
-      ansible.builtin.stat:
-        path: /mnt/azureblob
-      register: azureblob_output
-      failed_when: azureblob_output is not defined or (not azureblob_output.stat.exists and not ansible_check_mode)
+    - name: Ensure MongoDB URI result is defined
+      ansible.builtin.fail:
+        msg: "MongoDB URI result is not defined, cannot proceed with restore"
+      when: mongodb_uri_result is not defined or mongodb_uri_result.content is not defined
 
-    - name: Debug output of the mounted Azure Blob storage
+    - name: Extract MongoDB URI from the env file
+      ansible.builtin.set_fact:
+        mongodb_uri: |
+          "{{ (mongodb_uri_result.content | b64decode).splitlines() |
+          select('search', '^PRITUNL_MONGODB_URI') | first |
+          regex_replace('PRITUNL_MONGODB_URI=', '') }}"
+
+- name: Backup MongoDB data
+  ignore_errors: "{{ ansible_check_mode }}"
+  block:
+    - name: Assign actual date to variable
+      ansible.builtin.set_fact:
+        actual_date: >-
+          "{{ ansible_date_time.day }}{{ ansible_date_time.month }}{{ ansible_date_time.year }}"
+
+    - name: Debug actual date for backup
       ansible.builtin.debug:
-        msg: "Azure Blob storage is mounted at {{ item.path }}"
+        msg: 'Actual date to perform the backup is: {{ actual_date }}'
         verbosity: 2
-      with_items: "{{ azureblob_output.results }}"
-      when:
-        - item.stat is defined
-        - item.stat.exists
-        - item.stat.mnt is defined
-        - item.stat.mnt
+        
+    - name: Set backup file path
+      ansible.builtin.set_fact:
+        backup_path: '/mnt/azureblob/backups'
+        backup_file: '{{ backup_path }}/pritunl-backup-{{ actual_date }}.archive'
+
+    - name: Perform MongoDB backup using mongodump
+      ansible.legacy.command:
+        cmd: >
+          mongodump --uri="{{ mongodb_uri }}"
+          --archive="{{ backup_file }}"
+      args:
+        chdir: '{{ backup_path }}'
+        creates: '{{ backup_file }}'
+      when: mongodb_uri is defined
+
+    - name: List backup files in the directory
+      ansible.builtin.find:
+        paths: /mnt/azureblob/backups
+        recurse: false
+        file_type: file
+      register: backup_files_output
+
+    - name: Show current backup files created
+      ansible.builtin.debug:
+        msg: "{{ backup_files_output.files | map(attribute='path') | list }}"
+        verbosity: 2
+      when: backup_files_output is defined and backup_files_output.matched > 0
+
+    - name: Unmount Azure Blob storage after backup
+      ansible.posix.mount:
+        path: /mnt/azureblob
+        state: unmounted
+      when: not ansible_check_mode and mountpoint_check.rc == 0
+      register: umount_result
+
+    - name: Debug detailed umount_result
+      ansible.builtin.debug:
+        var: umount_result
+        verbosity: 2
