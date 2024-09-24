@@ -1,0 +1,20 @@
+---
+- name: Latest checks for restore-role
+  ignore_errors: "{{ ansible_check_mode }}"
+  block:
+    - name: List backup files in the directory
+      ansible.builtin.find:
+        paths: /mnt/azureblob/backups
+        recurse: false
+        file_type: file
+      register: backup_files_output
+
+    - name: Show current backup files created
+      ansible.builtin.debug:
+        msg: "{{ backup_files_output.files | map(attribute='path') | list }}"
+      when: backup_files_output is defined and backup_files_output.matched > 0
+
+    - name: Find the most recent backup file
+      ansible.builtin.set_fact:
+        recent_backup_file: "{{ backup_files_output.files | sort(attribute='mtime') | last }}"
+
