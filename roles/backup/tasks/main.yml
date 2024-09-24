@@ -1,136 +1,42 @@
----
-# Backup Role
-- name: Check if blobfuse2 is installed
-  ansible.builtin.package_facts:
-    manager: "apt"
+- block:
+    - name: Gather facts about installed packages
+      ansible.builtin.package_facts:
+        manager: "apt"
 
-- name: Install Microsoft package configuration for Ubuntu
-  ansible.builtin.get_url:
-    url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
-    dest: /tmp/packages-microsoft-prod.deb
-  when: "'blobfuse2' not in ansible_facts.packages"
+    - name: Debug package facts to verify blobfuse2 presence
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts.packages.keys() | select('search', 'blobfuse') | list }}"
+        verbosity: 2
+      register: blobfuse2_presence
 
-- name: Install Microsoft package configuration
-  ansible.builtin.apt:
-    deb: /tmp/packages-microsoft-prod.deb
-    state: present
-  when: "'blobfuse2' not in ansible_facts.packages"
+    - name: Download Microsoft package configuration for Ubuntu
+      ansible.builtin.get_url:
+        url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+        dest: /tmp/packages-microsoft-prod.deb
+        mode: '0644'
+      when: blobfuse2_presence is defined
 
-- name: Update apt cache
-  ansible.builtin.apt:
-    update_cache: yes
-  when: "'blobfuse2' not in ansible_facts.packages"
+    - name: Install Microsoft package configuration
+      ansible.builtin.apt:
+        deb: /tmp/packages-microsoft-prod.deb
+        state: present
+      register: apt_install_output
+      changed_when: apt_install_output is defined and apt_install_output.changed is defined
+      when: blobfuse2_presence is defined
 
-- name: Install required packages for Blobfuse
-  ansible.builtin.apt:
-    name:
-      - fuse3
-      - blobfuse2
-    state: present
-    update_cache: yes
-  when: "'blobfuse2' not in ansible_facts.packages"
+    - name: Install required packages for Blobfuse (ensure installation)
+      ansible.builtin.apt:
+        name:
+          - fuse3
+          - blobfuse2
+        state: present
+        update_cache: true
+      when: blobfuse2_presence is defined
 
-- name: Ensure the directory for mounting Azure Blob storage exists
-  ansible.builtin.file:
-    path: /mnt/azureblob
-    state: directory
-    mode: '0750'
-
-- name: Ensure the tmp path for Blobfuse exists
-  ansible.builtin.file:
-    path: /mnt/resource/blobfusetmp
-    state: directory
-    mode: '0750'
-
-- name: Verify if /mnt/azureblob is already mounted
-  ansible.builtin.command: "mountpoint /mnt/azureblob"
-  register: mountpoint_check
-  failed_when: false
-
-- name: Mount Azure Blob storage if not already mounted
-  ansible.builtin.command: >
-    blobfuse /mnt/azureblob --tmp-path=/mnt/resource/blobfusetmp 
-    --container-name={{ container_name }} 
-    --account-name={{ storage_account_name }} 
-    --account-key={{ storage_account_key }} 
-    -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120
-  when: mountpoint_check.rc != 0
-  args:
-    creates: /mnt/azureblob
-
-- name: Verify that Azure Blob storage is mounted
-  ansible.builtin.command: df -h /mnt/azureblob
-  register: mount_output
-
-- name: Debug output of the mounted Azure Blob storage
-  ansible.builtin.debug:
-    msg: "{{ mount_output.stdout_lines }}"
-
-- name: Assign actual date into a variable
-  set_fact:
-    actual_date: "{{ ansible_date_time.day }}{{ ansible_date_time.month }}{{ ansible_date_time.year }}"
-
-- name: Using the created date-var
-  ansible.builtin.debug:
-    msg: "Actual date to perform the backup is: {{ actual_date }}"
-
-- name: Read the /etc/pritunl-web.env file
-  ansible.builtin.slurp:
-    path: /etc/pritunl-web.env
-  register: pritunl_env_file
+    - name: Debug installation summary with total number of packages
+      ansible.builtin.debug:
+        msg:
+          - "Installation process completed."
+          - "Number of installed packages: {{ ansible_facts.packages | default([]) | length }}"
+        verbosity: 2
   ignore_errors: "{{ ansible_check_mode }}"
-
-- name: Extract MongoDB URI from the env file
-  set_fact:
-    mongodb_uri: "{{ (pritunl_env_file.content | b64decode).splitlines() | select('search', '^PRITUNL_MONGODB_URI') | first | regex_replace('PRITUNL_MONGODB_URI=', '') }}"
-  when: pritunl_env_file is defined and pritunl_env_file.content is defined
-
-- name: Debug MongoDB URI
-  ansible.builtin.debug:
-    var: mongodb_uri
-  when: mongodb_uri is defined
-
-- name: Check if backup directory exists
-  ansible.builtin.stat:
-    path: "/mnt/azureblob/backups"
-  register: backup_dir_status
-
-- name: Create backup directory if it does not exist
-  ansible.builtin.file:
-    path: "/mnt/azureblob/backups"
-    state: directory
-  when: not backup_dir_status.stat.exists
-
-- name: Perform MongoDB backup using mongodump
-  command: >
-    mongodump --uri={{ mongodb_uri }} --archive=pritunl-backup-{{ actual_date }}.archive
-  args:
-    chdir: /mnt/azureblob/backups
-    creates: /mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive
-  when: mongodb_uri is defined
-
-- name: List backup files in the directory
-  find:
-    paths: /mnt/azureblob/backups
-    recurse: no
-    file_type: file
-  register: backup_files_output
-
-- name: Show current backup files created
-  debug:
-    msg: "{{ backup_files_output.files | map(attribute='path') | list }}"
-  when: backup_files_output is defined and backup_files_output.matched > 0
-
-- name: Fetch the backup file from the source server
-  ansible.builtin.fetch:
-    src: "/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive"
-    dest: "/tmp/backups/"
-    flat: yes
-  delegate_to: "{{ ansible_host }}"
-
-- name: Copy the backup to the destination server using SCP
-  ansible.builtin.copy:
-    src: "/tmp/backups/pritunl-backup-{{ actual_date }}.archive"
-    dest: "/mnt/azureblob/backups/"
-    mode: '0644'
-  delegate_to: "{{ destination_server }}"
