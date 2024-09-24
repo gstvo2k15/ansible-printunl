@@ -1,4 +1,7 @@
-- block:
+---
+- name: First part for installing required packages for blob-mount
+  ignore_errors: "{{ ansible_check_mode }}"
+  block:
     - name: Gather facts about installed packages
       ansible.builtin.package_facts:
         manager: "apt"
@@ -38,5 +41,4 @@
         msg:
           - "Installation process completed."
           - "Number of installed packages: {{ ansible_facts.packages | default([]) | length }}"
-        verbosity: 2
-  ignore_errors: "{{ ansible_check_mode }}"
+      verbosity: 2
