@@ -61,8 +61,10 @@
           - "Backup file path is: {{ backup_file_path }}"
 
     - name: Perform MongoDB backup using mongodump
-      ansible.builtin.command: >
-        mongodump --uri={{ mongodb_uri }} --archive={{ backup_file_path }}
+      ansible.builtin.command:
+        cmd: >
+          mongodump --uri="{{ mongodb_uri }}"
+          --archive=pritunl-backup-"{{ actual_date }}".archive
       args:
         chdir: "{{ backup_path }}"
         creates: "{{ backup_file_path }}"
@@ -85,7 +87,7 @@
       ansible.posix.mount:
         path: /mnt/azureblob
         state: unmounted
-      when: mountpoint_check is defined and not ansible_check_mode and mountpoint_check.rc == 0
+      when: not ansible_check_mode and mountpoint_check.rc == 0
       register: umount_result
 
     - name: Debug detailed umount_result

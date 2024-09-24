@@ -2,4 +2,7 @@
 - hosts: all
   become: true
   roles:
+    #- installation
+    #- filesystem
+    #- blob_mount
     - backup
