@@ -1,0 +1,32 @@
+---
+- name: Retrieve MongoDB URI from pritunl-web.env
+  ignore_errors: "{{ ansible_check_mode }}"
+  block:
+    - name: Check if /etc/pritunl-web.env exists
+      ansible.builtin.stat:
+        path: /etc/pritunl-web.env
+      register: pritunl_env_file
+
+    - name: Retrieve MongoDB URI from /etc/pritunl-web.env
+      ansible.builtin.slurp:
+        path: /etc/pritunl-web.env
+      register: mongodb_uri_result
+      when: pritunl_env_file.stat.exists
+
+    - name: Debug MongoDB URI result
+      ansible.builtin.debug:
+        var: mongodb_uri_result
+        verbosity: 2
+      when: mongodb_uri_result is defined and mongodb_uri_result.content is defined
+
+    - name: Ensure MongoDB URI result is defined
+      ansible.builtin.fail:
+        msg: "MongoDB URI result is not defined, cannot proceed with restore"
+      when: mongodb_uri_result is not defined or mongodb_uri_result.content is not defined
+
+    - name: Extract MongoDB URI from the env file
+      ansible.builtin.set_fact:
+        mongodb_uri: |
+          "{{ (mongodb_uri_result.content | b64decode).splitlines() |
+          select('search', '^PRITUNL_MONGODB_URI') | first |
+          regex_replace('PRITUNL_MONGODB_URI=', '') }}"
