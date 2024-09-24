@@ -46,29 +46,26 @@
       ansible.builtin.set_fact:
         backup_path: "/mnt/azureblob/backups"
 
-    - name: Set backup file
-      ansible.builtin.set_fact:
-        backup_file: "{{ backup_path }}/pritunl-backup-{{ actual_date }}.archive"
+    - name: Debug backup path
+      ansible.builtin.debug:
+        msg:
+          - "Backup path is: {{ backup_path }}"
 
     - name: Set backup file path
       ansible.builtin.set_fact:
         backup_file_path: '/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive'
 
-    - name: Debug backup path and file
+    - name: Debug backup path
       ansible.builtin.debug:
         msg:
-          - "Backup path is: {{ backup_path }}"
-          - "Backup file is: {{ backup_file }}"
           - "Backup file path is: {{ backup_file_path }}"
 
     - name: Perform MongoDB backup using mongodump
-      ansible.builtin.command:
-        cmd: >
-          mongodump --uri="{{ mongodb_uri }}"
-          --archive=pritunl-backup-"{{ actual_date }}".archive
+      ansible.builtin.command: >
+        mongodump --uri={{ mongodb_uri }} --archive=pritunl-backup-{{ actual_date }}.archive
       args:
         chdir: /mnt/azureblob/backups
-        creates: '{{ backup_file_path }}'
+        creates: /mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive
       when: mongodb_uri is defined
 
     - name: List backup files in the directory
