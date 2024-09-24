@@ -1,4 +1,36 @@
 ---
+- name: Retrieve MongoDB URI from pritunl-web.env
+  ignore_errors: "{{ ansible_check_mode }}"
+  block:
+    - name: Check if /etc/pritunl-web.env exists
+      ansible.builtin.stat:
+        path: /etc/pritunl-web.env
+      register: pritunl_env_file
+
+    - name: Retrieve MongoDB URI from /etc/pritunl-web.env
+      ansible.builtin.slurp:
+        path: /etc/pritunl-web.env
+      register: mongodb_uri_result
+      when: pritunl_env_file.stat.exists
+
+    - name: Debug MongoDB URI result
+      ansible.builtin.debug:
+        var: mongodb_uri_result
+        verbosity: 2
+      when: mongodb_uri_result is defined and mongodb_uri_result.content is defined
+
+    - name: Ensure MongoDB URI result is defined
+      ansible.builtin.fail:
+        msg: "MongoDB URI result is not defined, cannot proceed with restore"
+      when: mongodb_uri_result is not defined or mongodb_uri_result.content is not defined
+
+    - name: Extract MongoDB URI from the env file
+      ansible.builtin.set_fact:
+        mongodb_uri: |
+          "{{ (mongodb_uri_result.content | b64decode).splitlines() |
+          select('search', '^PRITUNL_MONGODB_URI') | first |
+          regex_replace('PRITUNL_MONGODB_URI=', '') }}"
+
 - name: Backup MongoDB data
   block:
     - name: Assign actual date to variable
@@ -10,25 +42,33 @@
         msg: 'Actual date to perform the backup is: {{ actual_date }}'
         verbosity: 2
 
-    - name: Set backup path and file
+    - name: Set backup path
       ansible.builtin.set_fact:
         backup_path: "/mnt/azureblob/backups"
+
+    - name: Set backup file
+      ansible.builtin.set_fact:
         backup_file: "{{ backup_path }}/pritunl-backup-{{ actual_date }}.archive"
-    
+
+    - name: Set backup file path
+      ansible.builtin.set_fact:
+        backup_file_path: '/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive'
+
     - name: Debug backup path and file
       ansible.builtin.debug:
         msg:
           - "Backup path is: {{ backup_path }}"
           - "Backup file is: {{ backup_file }}"
+          - "Backup file path is: {{ backup_file_path }}"
 
     - name: Perform MongoDB backup using mongodump
-      ansible.legacy.command:
+      ansible.builtin.command:
         cmd: >
           mongodump --uri="{{ mongodb_uri }}"
-          --archive="{{ backup_file }}"
+          --archive=pritunl-backup-"{{ actual_date }}".archive
       args:
-        chdir: '{{ backup_path }}'
-        creates: '{{ backup_file }}'
+        chdir: /mnt/azureblob/backups
+        creates: '{{ backup_file_path }}'
       when: mongodb_uri is defined
 
     - name: List backup files in the directory
