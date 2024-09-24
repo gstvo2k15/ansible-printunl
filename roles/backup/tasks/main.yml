@@ -43,11 +43,17 @@
       ansible.builtin.debug:
         msg: 'Actual date to perform the backup is: {{ actual_date }}'
         verbosity: 2
-        
-    - name: Set backup file path
+
+    - name: Set backup path and file
       ansible.builtin.set_fact:
         backup_path: '/mnt/azureblob/backups'
-        backup_file: '{{ backup_path }}/pritunl-backup-{{ actual_date }}.archive'
+        backup_file: '/mnt/azureblob/backups/pritunl-backup-{{ actual_date }}.archive'
+
+    - name: Debug backup path and file
+      ansible.builtin.debug:
+        msg:
+          - "Backup path is: {{ backup_path }}"
+          - "Backup file is: {{ backup_file }}"
 
     - name: Perform MongoDB backup using mongodump
       ansible.legacy.command:
@@ -61,7 +67,7 @@
 
     - name: List backup files in the directory
       ansible.builtin.find:
-        paths: /mnt/azureblob/backups
+        paths: '{{ backup_path }}'
         recurse: false
         file_type: file
       register: backup_files_output
