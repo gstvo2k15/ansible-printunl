@@ -86,7 +86,7 @@
   when: not backup_dir_status.stat.exists
 
 - name: Find the most recent backup file
-  ansible.builtin.shell: "ls -t /backups/pritunl-backup-*.archive | head -n 1"
+  ansible.builtin.shell: "ls -t /mnt/azureblob/backups/pritunl-backup-*.archive | head -n 1"
   register: recent_backup_file
 
 - name: Debug output of the most recent backup file
