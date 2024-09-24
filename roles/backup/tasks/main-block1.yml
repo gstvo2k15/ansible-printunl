@@ -1,0 +1,44 @@
+---
+- name: First part for installing required packages for blob-mount
+  ignore_errors: "{{ ansible_check_mode }}"
+  block:
+    - name: Gather facts about installed packages
+      ansible.builtin.package_facts:
+        manager: "apt"
+
+    - name: Debug package facts to verify blobfuse2 presence
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts.packages.keys() | select('search', 'blobfuse') | list }}"
+        verbosity: 2
+      register: blobfuse2_presence
+
+    - name: Download Microsoft package configuration for Ubuntu
+      ansible.builtin.get_url:
+        url: https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+        dest: /tmp/packages-microsoft-prod.deb
+        mode: '0644'
+      when: blobfuse2_presence is defined
+
+    - name: Install Microsoft package configuration
+      ansible.builtin.apt:
+        deb: /tmp/packages-microsoft-prod.deb
+        state: present
+      register: apt_install_output
+      changed_when: apt_install_output is defined and apt_install_output.changed is defined
+      when: blobfuse2_presence is defined
+
+    - name: Install required packages for Blobfuse (ensure installation)
+      ansible.builtin.apt:
+        name:
+          - fuse3
+          - blobfuse2
+        state: present
+        update_cache: true
+      when: blobfuse2_presence is defined
+
+    - name: Debug installation summary with total number of packages
+      ansible.builtin.debug:
+        msg:
+          - "Installation process completed."
+          - "Number of installed packages: {{ ansible_facts.packages | default([]) | length }}"
+      verbosity: 2
