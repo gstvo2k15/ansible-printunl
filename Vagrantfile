@@ -14,6 +14,7 @@ Vagrant.configure("2") do |config|
         vb.memory = 9200
         vb.cpus = 2
         vb.customize ["modifyvm", :id, "--cpu-execution-cap", "80"]
+        vb.gui = false
       end
 
       vm.vm.network "public_network", ip: ip, bridge: "enp0s31f6"
@@ -35,7 +36,7 @@ Vagrant.configure("2") do |config|
      
         sudo mkdir -p /news && sudo cp /vagrant/optifact-installer-*.sh /news/
         sudo chmod +x /news/optifact-installer-*.sh
-        sudo localectl set-keymap es && sudo timedatectl set-timezone Europe/Madrid
+        sudo apt-get install -yqq console-common && sudo localectl set-keymap es && sudo timedatectl set-timezone Europe/Madrid
       SHELL
     
       vm.ssh.insert_key = false
