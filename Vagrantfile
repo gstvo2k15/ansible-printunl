@@ -1,112 +1,46 @@
 Vagrant.configure("2") do |config|
-  
-  # Configuración global para todas las VMs
-  config.vm.box = "ubuntu/jammy64"  # Ubuntu 22.04
+  vms = {
+    "ub22vm01" => "192.168.1.151",
+    "ub22vm02" => "192.168.1.152",
+    "ub22vm03" => "192.168.1.153"
+  }
 
-  # Obtener el directorio actual para las rutas de los discos
-  current_dir = File.expand_path(".")
+  vms.each do |name, ip|
+    config.vm.define name do |vm|
+      vm.vm.box = "it-gro/ubuntu-22-04-srv-lvm"
 
-  # Nodo 1
-  config.vm.define "node1" do |node1|
-    node1.vm.hostname = "labnode1"
+      vm.vm.provider "virtualbox" do |vb|
+        vb.name = name
+        vb.memory = 9200
+        vb.cpus = 2
+        vb.customize ["modifyvm", :id, "--cpu-execution-cap", "80"]
+      end
+
+      vm.vm.network "public_network", ip: ip, bridge: "enp0s31f6"
+
+      vm.vm.synced_folder ".", "/vagrant"
+
+      vm.vm.provision "shell", inline: <<-SHELL
+        sudo systemctl disable --now unattended-upgrades
+
+        sudo apt-get update -yqq && sudo apt-get install -yqq ca-certificates curl gnupg
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get update -yqq && sudo apt-get install -yqq docker.io docker-compose-plugin
+
+        mkdir -p ~/.docker/cli-plugins/
+        curl -SL https://github.com/docker/compose/releases/download/v2.29.6/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+        chmod +x ~/.docker/cli-plugins/docker-compose
+     
+        sudo mkdir -p /news && sudo cp /vagrant/optifact-installer-*.sh /news/
+        sudo chmod +x /news/optifact-installer-*.sh
+        sudo localectl set-keymap es && sudo timedatectl set-timezone Europe/Madrid
+      SHELL
     
-    # Solo adaptador puente
-    node1.vm.network "public_network", ip: "192.168.1.131", bridge: "enx3c18a0d4bb07"
-
-    # Configuración del proveedor VirtualBox
-    node1.vm.provider "virtualbox" do |vb|
-      vb.memory = "2048"
-      vb.cpus = 2
-
-      # Crear un controlador SATA adicional para el disco
-      vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
-
-      # Crear y adjuntar un disco adicional de 10GB usando PWD con nombre labnode1_disk.vdi
-      vb.customize ['createhd', '--filename', "#{current_dir}/labnode1_disk.vdi", '--size', 10240]
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', "#{current_dir}/labnode1_disk.vdi"]
+      vm.ssh.insert_key = false
+      vm.ssh.username = "vagrant"
+      vm.ssh.private_key_path = "~/.vagrant.d/insecure_private_key"
     end
-
-    # Aprovisionamiento para LVM
-    node1.vm.provision "shell", inline: <<-SHELL
-      sudo apt-get update
-      sudo apt-get install -y lvm2
-      echo -e "n\np\n1\n\n\nw" | sudo fdisk /dev/sdb
-      sudo pvcreate /dev/sdb1
-      sudo vgcreate vg_data /dev/sdb1
-      sudo lvcreate -L 5G -n lv_data vg_data
-      sudo mkfs.ext4 /dev/vg_data/lv_data
-      sudo mkdir -p /mnt/data
-      sudo mount /dev/vg_data/lv_data /mnt/data
-      echo '/dev/vg_data/lv_data /mnt/data ext4 defaults 0 0' | sudo tee -a /etc/fstab
-    SHELL
   end
-
-  # Nodo 2
-  config.vm.define "node2" do |node2|
-    node2.vm.hostname = "labnode2"
-    
-    # Solo adaptador puente
-    node2.vm.network "public_network", ip: "192.168.1.132", bridge: "enx3c18a0d4bb07"
-
-    node2.vm.provider "virtualbox" do |vb|
-      vb.memory = "2048"
-      vb.cpus = 2
-
-      # Crear un controlador SATA adicional para el disco
-      vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
-
-      # Crear y adjuntar un disco adicional de 10GB usando PWD con nombre labnode2_disk.vdi
-      vb.customize ['createhd', '--filename', "#{current_dir}/labnode2_disk.vdi", '--size', 10240]
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', "#{current_dir}/labnode2_disk.vdi"]
-    end
-
-    # Aprovisionamiento para LVM
-    node2.vm.provision "shell", inline: <<-SHELL
-      sudo apt-get update
-      sudo apt-get install -y lvm2
-      echo -e "n\np\n1\n\n\nw" | sudo fdisk /dev/sdb
-      sudo pvcreate /dev/sdb1
-      sudo vgcreate vg_data /dev/sdb1
-      sudo lvcreate -L 5G -n lv_data vg_data
-      sudo mkfs.ext4 /dev/vg_data/lv_data
-      sudo mkdir -p /mnt/data
-      sudo mount /dev/vg_data/lv_data /mnt/data
-      echo '/dev/vg_data/lv_data /mnt/data ext4 defaults 0 0' | sudo tee -a /etc/fstab
-    SHELL
-  end
-
-  # Nodo 3
-  config.vm.define "node3" do |node3|
-    node3.vm.hostname = "labnode3"
-    
-    # Solo adaptador puente
-    node3.vm.network "public_network", ip: "192.168.1.133", bridge: "enx3c18a0d4bb07"
-
-    node3.vm.provider "virtualbox" do |vb|
-      vb.memory = "2048"
-      vb.cpus = 2
-
-      # Crear un controlador SATA adicional para el disco
-      vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--add', 'sata', '--controller', 'IntelAHCI']
-
-      # Crear y adjuntar un disco adicional de 10GB usando PWD con nombre labnode3_disk.vdi
-      vb.customize ['createhd', '--filename', "#{current_dir}/labnode3_disk.vdi", '--size', 10240]
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', "#{current_dir}/labnode3_disk.vdi"]
-    end
-
-    # Aprovisionamiento para LVM
-    node3.vm.provision "shell", inline: <<-SHELL
-      sudo apt-get update
-      sudo apt-get install -y lvm2
-      echo -e "n\np\n1\n\n\nw" | sudo fdisk /dev/sdb
-      sudo pvcreate /dev/sdb1
-      sudo vgcreate vg_data /dev/sdb1
-      sudo lvcreate -L 5G -n lv_data vg_data
-      sudo mkfs.ext4 /dev/vg_data/lv_data
-      sudo mkdir -p /mnt/data
-      sudo mount /dev/vg_data/lv_data /mnt/data
-      echo '/dev/vg_data/lv_data /mnt/data ext4 defaults 0 0' | sudo tee -a /etc/fstab
-    SHELL
-  end
-
 end
