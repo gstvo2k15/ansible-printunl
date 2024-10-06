@@ -2,7 +2,7 @@ Vagrant.configure("2") do |config|
   vms = {
     "ub22vm01" => "192.168.1.151",
     "ub22vm02" => "192.168.1.152",
-    "ub22vm03" => "192.168.1.153"
+    #"ub22vm03" => "192.168.1.153"
   }
 
   vms.each do |name, ip|
@@ -36,9 +36,12 @@ Vagrant.configure("2") do |config|
      
         sudo mkdir -p /news && sudo cp /vagrant/optifact-installer-*.sh /news/
         sudo chmod +x /news/optifact-installer-*.sh
-        sudo apt-get install -yqq console-common && sudo localectl set-keymap es && sudo timedatectl set-timezone Europe/Madrid
+
+        sudo sed -i 's/XKBLAYOUT=".*"/XKBLAYOUT="es"/' /etc/default/keyboard
+        sudo timedatectl set-timezone Europe/Madrid
+        sudo apt-get install -yqq locales && sudo locale-gen es_ES.UTF-8 && sudo update-locale LANG=es_ES.UTF-8
       SHELL
-    
+
       vm.ssh.insert_key = false
       vm.ssh.username = "vagrant"
       vm.ssh.private_key_path = "~/.vagrant.d/insecure_private_key"
