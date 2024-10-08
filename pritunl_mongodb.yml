@@ -1,5 +1,5 @@
 ---
-- name: Install Pritunl server for Ubuntu24
+- name: Install Pritunl server for Ubuntu22
   hosts: all
   become: true
 
