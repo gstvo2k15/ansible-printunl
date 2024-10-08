@@ -1,7 +1,8 @@
 ---
-- hosts: all
+- name: Install Pritunl server for Ubuntu24
+  hosts: all
   become: true
+
   roles:
     - filesystem
     - install
-    #- configuration
