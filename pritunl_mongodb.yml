@@ -3,5 +3,5 @@
   become: true
   roles:
     - filesystem
-    - installation
-    - configuration
+    - install
+    #- configuration
