@@ -6,3 +6,4 @@
   roles:
     - filesystem
     - install_ub22
+    - configuration
