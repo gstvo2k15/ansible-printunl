@@ -112,23 +112,7 @@
       });
     mode: '0644'
 
-# Display content of pritunl_setup.js
-- name: Display content of pritunl_setup.js
-  ansible.builtin.command:
-    cmd: cat /tmp/pritunl_setup.js
-  register: pritunl_setup_script
-  changed_when: false
-
-- name: Debug pritunl_setup.js content
-  ansible.builtin.debug:
-    var: pritunl_setup_script.stdout_lines
-
-# Debugging the generated command
-- name: Debugging the generated command
-  ansible.builtin.debug:
-    msg: "Running mongosh with the following command: mongosh < /tmp/pritunl_setup.js"
-
-# Run pritunl_setup.js script with MongoDB connection details
+# Run pritunl_setup.js script with MongoDB connection details using shell
 - name: Run pritunl_setup.js script with MongoDB connection details
   ansible.builtin.shell: |
     mongosh < /tmp/pritunl_setup.js
@@ -136,19 +120,7 @@
   ignore_errors: true
   changed_when: mongo_output.rc == 0
 
-- name: Debug command output
-  ansible.builtin.debug:
-    var: mongo_output.stdout
-
-- name: Debug command error output
-  ansible.builtin.debug:
-    var: mongo_output.stderr
-
-- name: Debug command return code
-  ansible.builtin.debug:
-    var: mongo_output.rc
-
-- name: Debug the full result
+- name: Debug MongoDB script execution result
   ansible.builtin.debug:
     var: mongo_output
 
