@@ -1,4 +1,19 @@
 ---
+# Ensure vm.max_map_count is set
+- name: Ensure vm.max_map_count is set
+  ansible.posix.sysctl:
+    name: vm.max_map_count
+    value: 262144
+    state: present
+    reload: true
+
+# Create MongoDB directory
+- name: Create MongoDB directory
+  ansible.builtin.file:
+    path: /mongodbfolder
+    state: directory
+    mode: "0750"
+
 # Add Pritunl GPG key and repository
 - name: Add Pritunl GPG key
   ansible.builtin.apt_key:
