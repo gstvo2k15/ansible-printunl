@@ -1,0 +1,13 @@
+use {{ config_pritunl_mongo_admin_db }};
+db.createUser({
+    user: "{{ config_pritunl_admin_user }}",
+    pwd: "{{ config_pritunl_admin_password }}",
+    roles: [{ role: "{{ config_pritunl_mongo_root_role }}", db: "{{ config_pritunl_mongo_admin_db }}" }]
+});
+use {{ config_pritunl_mongo_pritunl_db }};
+db.dropUser("{{ config_pritunl_mongodb_user }}");
+db.createUser({
+    user: "{{ config_pritunl_mongodb_user }}",
+    pwd: "{{ pritunl_key_output.stdout | default('missing_key') }}",
+    roles: [{ role: "readWrite", db: "{{ config_pritunl_mongo_pritunl_db }}" }]
+});

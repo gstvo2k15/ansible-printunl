@@ -1,0 +1,20 @@
+---
+config_pritunl_debug: false
+config_pritunl_bind_addr: "0.0.0.0"
+config_pritunl_port: 443
+config_pritunl_log_path: "/var/log/pritunl.log"
+config_pritunl_temp_path: "/tmp/pritunl_%r"
+config_pritunl_local_address_interface: "auto"
+config_pritunl_mongodb_user: "pritunl_user"
+config_pritunl_mongodb_host: "127.0.0.1"
+config_pritunl_mongodb_port: 27017
+config_pritunl_web_debug: true
+config_pritunl_mongo_db_path: "/mongodbfolder"
+config_pritunl_mongo_bind_ip: "0.0.0.0"
+config_pritunl_mongo_port: 27017
+config_pritunl_admin_user: "newAdmin"
+config_pritunl_admin_password: "12345"
+config_pritunl_default_password_command: "pritunl default-password"
+config_pritunl_mongo_root_role: "root"
+config_pritunl_mongo_admin_db: "admin"
+config_pritunl_mongo_pritunl_db: "pritunl"

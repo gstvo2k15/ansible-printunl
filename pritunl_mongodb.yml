@@ -5,5 +5,5 @@
 
   roles:
     #- install_ub22
-    - config
+    - configure
     #- sudo

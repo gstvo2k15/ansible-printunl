@@ -1,0 +1,11 @@
+[Unit]
+Description=Pritunl Web Server
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/pritunl-web.env
+ExecStart=/usr/bin/pritunl-web
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

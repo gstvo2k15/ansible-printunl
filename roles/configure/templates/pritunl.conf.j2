@@ -1,0 +1,14 @@
+{
+    "debug": "{{ config_pritunl_debug | quote }}",
+    "bind_addr": "{{ config_pritunl_bind_addr | quote }}",
+    "port": {{ config_pritunl_port }},
+    "log_path": "{{ config_pritunl_log_path | quote }}",
+    "temp_path": "{{ config_pritunl_temp_path | quote }}",
+    "local_address_interface": "{{ config_pritunl_local_address_interface | quote }}",
+    "mongodb_uri": "{{ 'mongodb://'
+      + (config_pritunl_mongodb_user | quote)
+      + ':' + (pritunl_key_output.stdout | default('missing_key') | quote)
+      + '@' + config_pritunl_mongodb_host
+      + ':' + (config_pritunl_mongodb_port | string)
+      + '/pritunl' }}"
+}
