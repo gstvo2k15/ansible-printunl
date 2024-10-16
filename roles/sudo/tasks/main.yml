@@ -1,0 +1,21 @@
+---
+- name: Add 'edge' to sudo group using ansible.builtin.user
+  ansible.builtin.user:
+    name: 'edge'
+    groups: sudo
+    append: true
+    state: present
+
+- name: Verify if 'edge' user is part of sudo group
+  ansible.builtin.command: id edge
+  register: edge_user_info
+  changed_when: false
+
+- name: Debug edge user info after sudo addition
+  ansible.builtin.debug:
+    var: edge_user_info
+
+- name: Fallback - Add 'edge' to sudo group using usermod (if ansible.builtin.user fails)
+  ansible.builtin.command: usermod -aG sudo edge
+  when: "'sudo' not in edge_user_info.stdout"
+  notify: verify_edge_in_sudo_group

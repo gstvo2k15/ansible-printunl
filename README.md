@@ -7,7 +7,7 @@ Ansible deployment to provision printunl in VirtualBox VMs with Vagrant.
 
 ## Execute deployment for install pritunl and mongodb
 
-`ansible-playbook -i hosts.yml -l pritunl_servers1 pritunl_mongodb.yml`
+`ansible-playbook -i hosts.yml -l pritunl_servers2 pritunl_mongodb.yml`
 
 ## Install azure-blob Role:
 

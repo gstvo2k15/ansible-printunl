@@ -1,0 +1,9 @@
+---
+- name: verify_edge_in_sudo_group
+  ansible.builtin.command: id edge
+  register: final_edge_check
+  changed_when: false
+
+- name: Debug final verification of edge in sudo group
+  ansible.builtin.debug:
+    var: final_edge_check

@@ -4,5 +4,6 @@
   become: true
 
   roles:
-    - install_ub22
-    - configuration
+    #- install_ub22
+    #- configuration
+    - sudo
