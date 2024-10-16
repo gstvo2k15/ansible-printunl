@@ -1,9 +1,19 @@
 ---
-- name: verify_edge_in_sudo_group
+- name: Add 'edge' to sudo group
+  ansible.builtin.user:
+    name: 'edge'
+    groups: sudo
+    append: true
+    state: present
+
+- name: Reconnect after adding user to sudo group
+  meta: reset_connection
+
+- name: Verify 'edge' is part of sudo group after reconnection
   ansible.builtin.command: id edge
-  register: final_edge_check
+  register: edge_user_info
   changed_when: false
 
-- name: Debug final verification of edge in sudo group
+- name: Debug verification of edge in sudo group
   ansible.builtin.debug:
-    var: final_edge_check
+    var: edge_user_info
