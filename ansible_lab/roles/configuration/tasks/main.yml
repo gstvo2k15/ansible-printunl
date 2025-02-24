@@ -12,7 +12,7 @@
   register: pritunl_key_output
 
 - name: Debug Pritunl setup key output
-  debug:
+  ansible.builtin.debug:
     var: pritunl_key_output
 
 - name: Create Pritunl configuration file
@@ -157,5 +157,5 @@
   register: pritunl_default_password
 
 - name: Show Pritunl default admin password
-  debug:
+  ansible.builtin.debug:
     msg: "Pritunl default admin password is: {{ pritunl_default_password.stdout }}"
