@@ -10,6 +10,7 @@
   ansible.builtin.command:
     cmd: pritunl setup-key
   register: pritunl_key_output
+  changed_when: false
 
 - name: Debug Pritunl setup key output
   ansible.builtin.debug:
@@ -28,6 +29,7 @@
           "local_address_interface": "auto",
           "mongodb_uri": "mongodb://pritunl_user:{{ pritunl_key_output.stdout | default('missing_key') }}@127.0.0.1:27017/pritunl"
       }
+    mode: "0644"
   when:
     - pritunl_key_output is defined
     - ansible_default_ipv4.address is defined
@@ -39,6 +41,7 @@
     content: |
       PRITUNL_MONGODB_URI=mongodb://pritunl_user:{{ pritunl_key_output.stdout | default('missing_key') }}@127.0.0.1:27017/pritunl
       PRITUNL_DEBUG=true
+    mode: "0644"
 
 # Create Pritunl Web service file
 - name: Create Pritunl Web service file
@@ -56,12 +59,13 @@
 
       [Install]
       WantedBy=multi-user.target
+    mode: "0644"
 
 # Reload systemd and restart Pritunl Web service
 - name: Reload systemd and restart Pritunl Web service
   ansible.builtin.systemd:
     name: pritunl-web
-    daemon_reload: yes
+    daemon_reload: true
     state: restarted
 
 - name: Modify MongoDB storage dbPath
@@ -95,7 +99,7 @@
           user: "newAdmin",
           pwd: "12345",
           roles: [{ role: "root", db: "admin" }]
-      });      
+      });
       use pritunl;
       db.dropUser("pritunl_user");
       db.createUser({
@@ -103,43 +107,33 @@
           pwd: "{{ pritunl_key_output.stdout | default('missing_key') }}",
           roles: [{ role: "readWrite", db: "pritunl" }]
       });
+    mode: "0644"
 
-
-- name: Display content of pritunl_setup.js
-  ansible.builtin.command:
-    cmd: cat /tmp/pritunl_setup.js
+- name: Read content of pritunl_setup.js
+  ansible.builtin.slurp:
+    src: /tmp/pritunl_setup.js
   register: pritunl_setup_script
 
 - name: Debug pritunl_setup.js content
   ansible.builtin.debug:
-    var: pritunl_setup_script.stdout
-
+    msg: "{{ pritunl_setup_script['content'] | b64decode }}"
 
 - name: Debugging the generated command
   ansible.builtin.debug:
     msg: "Running mongosh with the following command: mongosh < /tmp/pritunl_setup.js"
 
 - name: Run pritunl_setup.js script with MongoDB connection details
-  ansible.builtin.command:
-    cmd: "mongosh < /tmp/pritunl_setup.js"
+  ansible.builtin.script:
+    cmd: /tmp/pritunl_setup.js
   register: mongo_output
-  ignore_errors: yes
+  changed_when: false
+  failed_when: 
+    - mongo_output.rc != 0
+    - "'MongoServerError' in mongo_output.stderr"
 
-- name: Debug command output
+- name: Display MongoDB execution result
   ansible.builtin.debug:
-    var: mongo_output.stdout
-
-- name: Debug command error output
-  ansible.builtin.debug:
-    var: mongo_output.stderr
-
-- name: Debug command return code
-  ansible.builtin.debug:
-    var: mongo_output.rc
-
-- name: Debug the full result
-  ansible.builtin.debug:
-    var: mongo_output
+    msg: "{{ mongo_output.stdout | default('No output') }}"
 
 # Set permissions for MongoDB folder
 - name: Change permissions of MongoDB folder
@@ -147,8 +141,8 @@
     path: /mongodbfolder
     owner: mongodb
     group: mongodb
-    mode: '0755'
-    recurse: yes
+    mode: "0750"
+    recurse: true
 
 # Get default admin passwd
 - name: Get Pritunl default admin password

@@ -5,7 +5,7 @@
     name: vm.max_map_count
     value: 262144
     state: present
-    reload: yes
+    reload: true
 
 # Create logical volume for MongoDB
 - name: Create logical volume for MongoDB
@@ -28,7 +28,7 @@
 
 # Mount the logical volume
 - name: Mount the logical volume
-  ansible.builtin.mount:
+  ansible.posix.mount:
     path: /mongodbfolder
     src: "/dev/ubuntu-vg/mongodblv"
     fstype: xfs
@@ -37,7 +37,7 @@
 
 # Add mount to fstab for persistence
 - name: Add mount to fstab for persistence
-  ansible.builtin.mount:
+  ansible.posix.mount:
     path: /mongodbfolder
     src: "/dev/ubuntu-vg/mongodblv"
     fstype: xfs
