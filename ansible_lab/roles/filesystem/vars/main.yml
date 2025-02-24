@@ -1,2 +1,4 @@
 ---
 # vars file for roles/filesystem
+filesystem_mongodb: /dev/ubuntu-vg/mongodblv
+filesystem_mongodb_mount: /mongodbfolder

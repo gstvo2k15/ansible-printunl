@@ -18,12 +18,12 @@
 - name: Format the logical volume with XFS
   community.general.filesystem:
     fstype: xfs
-    dev: "/dev/ubuntu-vg/mongodblv"
+    dev: "{{ filesystem_mongodb }}"
 
 # Set permissions for MongoDB folder
 - name: Create MongoDB folder
   ansible.builtin.file:
-    path: /mongodbfolder
+    path: "{{ filesystem_mongodb_mount }}"
     owner: mongodb
     group: mongodb
     mode: "0755"
@@ -32,8 +32,8 @@
 # Mount the logical volume
 - name: Mount the logical volume
   ansible.posix.mount:
-    path: /mongodbfolder
-    src: "/dev/ubuntu-vg/mongodblv"
+    path: "{{ filesystem_mongodb_mount }}"
+    src: "{{ filesystem_mongodb }}"
     fstype: xfs
     opts: defaults
     state: mounted
@@ -41,8 +41,8 @@
 # Add mount to fstab for persistence
 - name: Add mount to fstab for persistence
   ansible.posix.mount:
-    path: /mongodbfolder
-    src: "/dev/ubuntu-vg/mongodblv"
+    path: "{{ filesystem_mongodb_mount }}"
+    src: "{{ filesystem_mongodb }}"
     fstype: xfs
     opts: defaults
     state: present
