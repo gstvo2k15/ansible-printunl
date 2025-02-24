@@ -79,15 +79,9 @@
         pritunl_admin_username: "{{ passwd_output.stdout | regex_search('username: \"(.*?)\"', '\\1') }}"
         pritunl_admin_password: "{{ passwd_output.stdout | regex_search('password: \"(.*?)\"', '\\1') }}"
 
-    - name: Show Pritunl setup key
+    - name: Show Pritunl setup key and default admin credentials
       ansible.builtin.debug:
         msg: |
-          Pritunl setup key:
-          {{ pritunl_setup_key }}
-
-    - name: Show Pritunl default admin credentials
-      ansible.builtin.debug:
-        msg: |
-          Pritunl default admin credentials:
+          Pritunl setup key: {{ pritunl_setup_key }}
           Username: {{ pritunl_admin_username }}
           Password: {{ pritunl_admin_password }}
