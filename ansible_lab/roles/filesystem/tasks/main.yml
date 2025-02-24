@@ -43,4 +43,3 @@
     fstype: xfs
     opts: defaults
     state: present
-

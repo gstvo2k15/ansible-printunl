@@ -123,7 +123,7 @@
   ansible.builtin.command:
     cmd: "mongosh < /tmp/pritunl_setup.js"
   register: mongo_output
-  ignore_errors: yes  # Continue even if there are errors
+  ignore_errors: yes
 
 - name: Debug command output
   ansible.builtin.debug:
@@ -159,4 +159,3 @@
 - name: Show Pritunl default admin password
   debug:
     msg: "Pritunl default admin password is: {{ pritunl_default_password.stdout }}"
-
