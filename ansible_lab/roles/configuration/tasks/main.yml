@@ -127,22 +127,13 @@
     cmd: /tmp/pritunl_setup.js
   register: mongo_output
   changed_when: false
-  failed_when: 
+  failed_when:
     - mongo_output.rc != 0
     - "'MongoServerError' in mongo_output.stderr"
 
 - name: Display MongoDB execution result
   ansible.builtin.debug:
     msg: "{{ mongo_output.stdout | default('No output') }}"
-
-# Set permissions for MongoDB folder
-- name: Change permissions of MongoDB folder
-  ansible.builtin.file:
-    path: /mongodbfolder
-    owner: mongodb
-    group: mongodb
-    mode: "0750"
-    recurse: true
 
 # Get default admin passwd
 - name: Get Pritunl default admin password

@@ -1,7 +1,7 @@
 ---
 # Ensure vm.max_map_count is set
 - name: Ensure vm.max_map_count is set
-  ansible.builtin.sysctl:
+  ansible.posix.sysctl:
     name: vm.max_map_count
     value: 262144
     state: present
@@ -16,15 +16,18 @@
 
 # Format the logical volume with XFS
 - name: Format the logical volume with XFS
-  ansible.builtin.filesystem:
+  community.general.filesystem:
     fstype: xfs
     dev: "/dev/ubuntu-vg/mongodblv"
 
-# Create MongoDB directory
-- name: Create MongoDB directory
+# Set permissions for MongoDB folder
+- name: Create MongoDB folder
   ansible.builtin.file:
     path: /mongodbfolder
-    state: directory
+    owner: mongodb
+    group: mongodb
+    mode: "0755"
+    recurse: true
 
 # Mount the logical volume
 - name: Mount the logical volume
