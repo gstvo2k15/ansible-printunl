@@ -1,2 +1,3 @@
 ---
 # vars file for roles/configuration
+configuration_mongodb: /etc/mongod.conf

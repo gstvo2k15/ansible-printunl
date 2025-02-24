@@ -70,7 +70,7 @@
 
 - name: Modify MongoDB storage dbPath
   ansible.builtin.lineinfile:
-    path: /etc/mongod.conf
+    path: " {{ configuration_mongodb }}"
     regexp: '^  dbPath:'
     line: '  dbPath: /mongodbfolder'
     insertafter: '^storage:'
@@ -78,21 +78,21 @@
 # Modificar la configuración de red (net)
 - name: Modify MongoDB network bindIp and port
   ansible.builtin.lineinfile:
-    path: /etc/mongod.conf
+    path: " {{ configuration_mongodb }}"
     regexp: '^  bindIp:'
     line: '  bindIp: 0.0.0.0'
     insertafter: '^net:'
 
 - name: Modify MongoDB network port
   ansible.builtin.lineinfile:
-    path: /etc/mongod.conf
+    path: " {{ configuration_mongodb }}"
     regexp: '^  port:'
     line: '  port: 27017'
     insertafter: '^net:'
 
 - name: Create pritunl_setup.js script
   ansible.builtin.copy:
-    dest: /tmp/pritunl_setup.js
+    dest: "{{ configuration_mongodb_setup }}"
     content: |
       use admin;
       db.createUser({
@@ -111,7 +111,7 @@
 
 - name: Read content of pritunl_setup.js
   ansible.builtin.slurp:
-    src: /tmp/pritunl_setup.js
+    src: "{{ configuration_mongodb_setup }}"
   register: pritunl_setup_script
 
 - name: Debug pritunl_setup.js content
@@ -120,11 +120,11 @@
 
 - name: Debugging the generated command
   ansible.builtin.debug:
-    msg: "Running mongosh with the following command: mongosh < /tmp/pritunl_setup.js"
+    msg: "Running mongosh with the following command: mongosh < '{{ configuration_mongodb_setup }}'"
 
 - name: Run pritunl_setup.js script with MongoDB connection details
   ansible.builtin.script:
-    cmd: /tmp/pritunl_setup.js
+    cmd: "{{ configuration_mongodb_setup }}"
   register: mongo_output
   changed_when: false
   failed_when:
