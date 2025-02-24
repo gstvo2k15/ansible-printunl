@@ -1,3 +1,4 @@
 ---
 # vars file for roles/configuration
 configuration_mongodb: /etc/mongod.conf
+configuration_mongodb_setup: /tmp/pritunl_setup.js

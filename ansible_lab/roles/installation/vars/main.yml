@@ -1,2 +1,6 @@
 ---
 # vars file for roles/installation
+installation_pritunl_repo_pub: "https://raw.githubusercontent.com/pritunl/pgp/master/pritunl_repo_pub.asc"
+installation_pritunl_repo_ubuntu: "deb http://repo.pritunl.com/stable/apt jammy main"
+installation_mongodb_repo_pub: "https://www.mongodb.org/static/pgp/server-6.0.asc"
+installation_mongodb_repo_ubuntu: "deb https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse"

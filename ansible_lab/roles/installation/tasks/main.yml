@@ -2,23 +2,23 @@
 # Add Pritunl GPG key and repository
 - name: Add Pritunl GPG key
   ansible.builtin.apt_key:
-    url: "https://raw.githubusercontent.com/pritunl/pgp/master/pritunl_repo_pub.asc"
+    url: "{{ installation_pritunl_repo_pub }}"
     state: present
 
 - name: Add Pritunl repository
   ansible.builtin.apt_repository:
-    repo: "deb http://repo.pritunl.com/stable/apt jammy main"
+    repo: "{{ installation_pritunl_repo_ubuntu }}"
     state: present
 
 # Add MongoDB GPG key and repository
 - name: Add MongoDB GPG key
   ansible.builtin.apt_key:
-    url: "https://www.mongodb.org/static/pgp/server-6.0.asc"
+    url: "{{ installation_mongodb_repo_pub }}"
     state: present
 
 - name: Add MongoDB repository
   ansible.builtin.apt_repository:
-    repo: "deb https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse"
+    repo: "{{ installation_mongodb_repo_ubuntu }}"
     state: present
 
 # Update package cache
