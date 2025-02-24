@@ -20,6 +20,20 @@
     fstype: xfs
     dev: "{{ filesystem_mongodb }}"
 
+# Create mondob group and user
+- name: Ensure mongodb group exists
+  ansible.builtin.group:
+    name: mongodb
+    state: present
+
+- name: Ensure mongodb user exists
+  ansible.builtin.user:
+    name: mongodb
+    group: mongodb
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
 # Set permissions for MongoDB folder
 - name: Create MongoDB folder
   ansible.builtin.file:
