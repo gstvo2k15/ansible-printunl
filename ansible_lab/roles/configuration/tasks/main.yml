@@ -70,7 +70,7 @@
 
 - name: Modify MongoDB storage dbPath
   ansible.builtin.lineinfile:
-    path: " {{ configuration_mongodb }}"
+    path: "{{ configuration_mongodb }}"
     regexp: '^  dbPath:'
     line: '  dbPath: /mongodbfolder'
     insertafter: '^storage:'
@@ -78,14 +78,14 @@
 # Modificar la configuración de red (net)
 - name: Modify MongoDB network bindIp and port
   ansible.builtin.lineinfile:
-    path: " {{ configuration_mongodb }}"
+    path: "{{ configuration_mongodb }}"
     regexp: '^  bindIp:'
     line: '  bindIp: 0.0.0.0'
     insertafter: '^net:'
 
 - name: Modify MongoDB network port
   ansible.builtin.lineinfile:
-    path: " {{ configuration_mongodb }}"
+    path: "{{ configuration_mongodb }}"
     regexp: '^  port:'
     line: '  port: 27017'
     insertafter: '^net:'
