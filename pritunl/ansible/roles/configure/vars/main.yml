@@ -1,0 +1,15 @@
+---
+configure_pritunl_debug: false
+configure_pritunl_bind_addr: "127.0.0.1"
+configure_pritunl_port: 443
+configure_pritunl_log_path: "/var/log/pritunl.log"
+configure_pritunl_temp_path: "/tmp/pritunl_%r"
+configure_pritunl_local_address_interface: "auto"
+configure_db_user: "pritunl_user"
+configure_db_host: "localhost"
+configure_db_port: 27017
+configure_db_mongo_root_role: "root"
+configure_db_mongo_admin_db: "admin"
+configure_pritunl_db: "pritunl"
+configure_db_admin_user: "admindb"
+configure_db_admin_passwd: "SuperSecretPassword"

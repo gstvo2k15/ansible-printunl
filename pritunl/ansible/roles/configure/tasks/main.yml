@@ -1,0 +1,93 @@
+---
+- name: Install all pritunl requirements
+  block:
+    - name: Get Pritunl setup key
+      ansible.builtin.command:
+        cmd: 'pritunl setup-key'
+      register: pritunl_setup_key
+      changed_when: false
+
+    - name: Define Pritunl setup key fact
+      ansible.builtin.set_fact:
+        pritunl_setup_key: "{{ pritunl_setup_key.stdout | trim }}"
+
+    - name: Set Pritunl configuration as a fact in JSON format
+      ansible.builtin.set_fact:
+        pritunl_config_json: "{{ pritunl_config | to_nice_json }}"
+      vars:
+        pritunl_config:
+          debug: "{{ configure_pritunl_debug }}"
+          bind_addr: "{{ configure_pritunl_bind_addr }}"
+          port: "{{ configure_db_port }}"
+          log_path: "{{ configure_pritunl_log_path }}"
+          temp_path: "{{ configure_pritunl_temp_path }}"
+          local_address_interface: "{{ configure_pritunl_local_address_interface }}"
+          mongodb_uri: "mongodb://{{ configure_db_user }}:\
+            {{ pritunl_setup_key }}@{{ configure_db_host }}:{{ configure_db_port }}/{{ configure_pritunl_db }}"
+
+    - name: Write JSON configuration to pritunl.conf
+      ansible.builtin.copy:
+        content: "{{ pritunl_config_json }}"
+        dest: /etc/pritunl.conf
+        mode: '0644'
+
+    - name: Ensure pip is installed
+      ansible.builtin.package:
+        name: pip
+        state: present
+
+    - name: Install or upgrade pymongo to version 4+
+      ansible.builtin.pip:
+        name: 'pymongo>=4.0'
+        executable: pip3
+        state: present
+
+    - name: Ensure MongoDB admin user exists with required role
+      community.mongodb.mongodb_user:
+        name: '{{ configure_db_admin_user }}'
+        password: '{{ configure_db_admin_passwd }}'
+        roles:
+          - db: '{{ configure_db_mongo_admin_db }}'
+            role: '{{ configure_db_mongo_root_role }}'
+        db: '{{ configure_db_mongo_admin_db }}'
+        state: present
+        login_host: '{{ configure_db_host }}'
+        login_port: '{{ configure_db_port }}'
+
+    - name: Ensure MongoDB Pritunl user exists with readWrite role
+      community.mongodb.mongodb_user:
+        name: '{{ configure_db_user }}'
+        password: '{{ pritunl_setup_key }}'
+        roles:
+          - db: '{{ configure_pritunl_db }}'
+            role: 'readWrite'
+        db: '{{ configure_pritunl_db }}'
+        state: present
+        login_user: '{{ configure_db_admin_user }}'
+        login_password: '{{ configure_db_admin_passwd }}'
+        login_host: '{{ configure_db_host }}'
+        login_port: '{{ configure_db_port }}'
+
+    - name: Get Pritunl default admin password
+      ansible.builtin.command:
+        cmd: 'pritunl default-password'
+      register: passwd_output
+      changed_when: false
+
+    - name: Extract Pritunl admin username & passwd
+      ansible.builtin.set_fact:
+        pritunl_admin_username: "{{ passwd_output.stdout | regex_search('username: \"(.*?)\"', '\\1') }}"
+        pritunl_admin_password: "{{ passwd_output.stdout | regex_search('password: \"(.*?)\"', '\\1') }}"
+
+    - name: Show Pritunl setup key
+      ansible.builtin.debug:
+        msg: |
+          Pritunl setup key:
+          {{ pritunl_setup_key }}
+
+    - name: Show Pritunl default admin credentials
+      ansible.builtin.debug:
+        msg: |
+          Pritunl default admin credentials:
+          Username: {{ pritunl_admin_username }}
+          Password: {{ pritunl_admin_password }}
