@@ -5,6 +5,6 @@
   become: true
 
   roles:
-    #- filesystem
-    #- installation
+    - filesystem
+    - installation
     - configure
