@@ -37,7 +37,7 @@
 # Create Pritunl Web configuration file
 - name: Create Pritunl Web configuration file
   ansible.builtin.copy:
-    dest: /etc/pritunl-web.env
+    dest: "{{ configuration_pritunl_service_env }}"
     content: |
       PRITUNL_MONGODB_URI=mongodb://pritunl_user:{{ pritunl_key_output.stdout | default('missing_key') }}@127.0.0.1:27017/pritunl
       PRITUNL_DEBUG=true
@@ -53,7 +53,7 @@
       After=network.target
 
       [Service]
-      EnvironmentFile=/etc/pritunl-web.env
+      EnvironmentFile="{{ configuration_pritunl_service_env }}"
       ExecStart=/usr/bin/pritunl-web
       Restart=on-failure
 
