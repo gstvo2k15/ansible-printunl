@@ -40,3 +40,4 @@ venv/
 *.exe
 *.o
 *.obj
+.ansible
