@@ -140,6 +140,7 @@
   ansible.builtin.command:
     cmd: pritunl default-password
   register: pritunl_default_password
+  changed_when: false
 
 - name: Show Pritunl default admin password
   ansible.builtin.debug:

@@ -38,7 +38,7 @@
 
 # Disable UFW
 - name: Disable UFW
-  ansible.builtin.ufw:
+  community.general.ufw:
     state: disabled
 
 # Enable and start services
