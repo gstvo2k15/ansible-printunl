@@ -1,0 +1,5 @@
+---
+# vars file for roles/configuration
+configuration_mongodb: /etc/mongod.conf
+configuration_mongodb_setup: /tmp/pritunl_setup.js
+configuration_pritunl_service_env: /etc/pritunl-web.env
